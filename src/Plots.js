@@ -3,7 +3,7 @@ function getAvailablePlots() {
     // Assuming you want to check the entire sheet, you might need to adjust this to a more specific range for efficiency
     var range = "Map"; // Adjust the range as needed
     var spreadsheetId = SPREADSHEET_ID; // Replace with your actual spreadsheet ID
-    var targetFormula = '=IMAGE("https://github.com/McKinnonIT/McKinnonVille/blob/main/Grass%201.png?raw=true",2)';
+    var targetFormula = '=IMAGE("https://raw.githubusercontent.com/McKinnonIT/McKinnonVille/main/assets/img/Grass%201.png")';
     var url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?valueRenderOption=FORMULA`;
 
     var headers = {
@@ -57,7 +57,7 @@ function allocatePlot(cellReference) {
     };
     var payload = JSON.stringify({
         values: [
-            ['=IMAGE("https://github.com/McKinnonIT/McKinnonVille/blob/main/Tent.png?raw=true")'], // Set the cell to this formula
+            ['=IMAGE("https://raw.githubusercontent.com/McKinnonIT/McKinnonVille/main/assets/img/Tent.png")'], // Set the cell to this formula
         ],
     });
     var options = {

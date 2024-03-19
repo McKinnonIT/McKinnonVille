@@ -8,7 +8,7 @@ function openSignupForm(event) {
                         title: 'McKinnonVille',
                         subtitle: '2024',
                         imageUrl:
-                            'https://raw.githubusercontent.com/McKinnonIT/McKinnonVille/main/Double%20Storey.png',
+                            'https://raw.githubusercontent.com/McKinnonIT/McKinnonVille/main/assets/img/Double%20Storey.png',
                         imageType: 'CIRCLE',
                     },
                     sections: [
@@ -79,7 +79,7 @@ function signUp(name, email, userId, spaceId) {
                     "header": {
                         "title": `Welcome to McKinnonVille, ${name}`,
                         "subtitle": `You have been given the plot ${randomPlot}.`,
-                        "imageUrl": "https://github.com/McKinnonIT/McKinnonVille/blob/main/Tent.png?raw=true",
+                        "imageUrl": "https://raw.githubusercontent.com/McKinnonIT/McKinnonVille/main/assets/img/Tent.png",
                         "imageType": "SQUARE"
                     },
                     sections: [

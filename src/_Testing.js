@@ -1,5 +1,5 @@
 function testFunc() {
-    return null
+    var key = getServiceAccountToken()
 }
 
 function testMultiSelect() {
