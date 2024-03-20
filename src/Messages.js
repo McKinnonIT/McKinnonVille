@@ -29,7 +29,6 @@ function sendMessage(message, spaceId, sendPrivately = false, userId = '') {
 
     try {
         const response = UrlFetchApp.fetch(url, options);
-        Logger.log(response.getContentText());
     } catch (e) {
         Logger.log("Error sending message to Google Chat: " + e.toString());
     }

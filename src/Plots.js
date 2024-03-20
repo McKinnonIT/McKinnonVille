@@ -91,7 +91,6 @@ function getCitizens() {
     if (values && values.length > 0) {
         // Flatten the array of arrays to a single-level array, assuming each sub-array has only one element (the value from column B)
         const citizens = values.map(row => row[0]);
-        Logger.log(citizens);
         return citizens;
     } else {
         Logger.log('No data found.');

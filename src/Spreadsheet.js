@@ -19,5 +19,4 @@ function appendRow(rowArray) {
     };
 
     var response = UrlFetchApp.fetch(url, options);
-    Logger.log(response.getContentText());
 }

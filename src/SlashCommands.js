@@ -1,10 +1,7 @@
 function slashPlay(event) {
-    return openSignupForm(event);
+    return signUpDialog(event);
 }
 
 function slashTest(event) {
-    return sendMessage(
-        "test message",
-        "spaces/ng5X0MAAAAE"
-    );
+    return selectOccupationDialog(event);
 }
