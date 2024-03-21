@@ -18,5 +18,5 @@ function appendRow(rowArray) {
         muteHttpExceptions: true,
     };
 
-    var response = UrlFetchApp.fetch(url, options);
+    return UrlFetchApp.fetch(url, options);
 }

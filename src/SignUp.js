@@ -50,6 +50,17 @@ function signUpDialog() {
 }
 
 
+/**
+ * Registers a new player in the game.
+ *
+ * @param {string} name - The name of the player.
+ * @param {string} email - The email of the player.
+ * @param {string} userId - The user ID of the player.
+ * @param {string} spaceId - The space ID of the player.
+ * @param {string} house - The house of the player.
+ * @param {string} occupation - The occupation of the player.
+ * @returns {HTTPResponse|null} - If fails, a HTTPResponse object containing the result of the sign-up process. 
+ */
 function signUp(name, email, userId, spaceId, house, occupation) {
     var citizens = getCitizens();
     var availablePlots = getAvailablePlots();
@@ -71,41 +82,24 @@ function signUp(name, email, userId, spaceId, house, occupation) {
         return { text: `Information missing, please email help@mckinnonsc.vic.edu.au for help.` };
     }
 
-    appendRow([name, email, randomPlot, userId, spaceId, house, ...Array(2).fill(null), occupation, ...Array(13).fill(1)]);
-    allocatePlot(randomPlot);
 
-    return {
-        cardsV2: [
-            {
-                cardId: 'addContact',
-                card: {
-                    header: {
-                        title: `Welcome to McKinnonVille, ${name}`,
-                        subtitle: `You have been given the plot ${randomPlot}.`,
-                        imageUrl: "https://raw.githubusercontent.com/McKinnonIT/McKinnonVille/main/assets/img/Tent.png",
-                        imageType: "SQUARE"
-                    },
-                    sections: [
-                        {
-                            header: 'Select your occupation',
-                            widgets: [
-                                {
-                                    selectionInput: {
-                                        type: 'DROPDOWN',
-                                        label: 'Occupations',
-                                        name: 'occupations',
-                                        items: getOccupationItems(getOccupations()),
-                                        onChangeAction: {
-                                            function: 'handleOccupationSelection',
-                                        },
-                                    },
-                                },
-                            ],
-                        },
-                    ],
-                },
-            },
-        ]
-    };
+    var signUpResponse = appendRow([
+        name,
+        email,
+        randomPlot,
+        userId,
+        spaceId,
+        house,
+        0, // Gold
+        1, // Plot Level
+        null, // Current Occupation Level (null as it is populated by HLOOKUP)
+        occupation,
+        ...Array(13).fill(1) // Fill occupation levels with 1
+    ]);
+
+    if (signUpResponse.getResponseCode() !== 200) {
+        return signUpResponse;
+    }
+
+    return allocatePlot(randomPlot);
 }
-

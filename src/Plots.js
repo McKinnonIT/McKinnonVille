@@ -67,33 +67,7 @@ function allocatePlot(cellReference) {
         muteHttpExceptions: true,
     };
 
-    var response = UrlFetchApp.fetch(url, options);
+    return UrlFetchApp.fetch(url, options);
 }
 
 
-function getCitizens() {
-    const sheetName = 'Citizens'; // The name of your sheet
-    const range = 'B3:B'; // Adjust if you need a different column or specific rows
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(sheetName + '!' + range)}`;
-    const headers = {
-        'Authorization': 'Bearer ' + getServiceAccountToken(), // Assumes getServiceAccountToken() is defined and returns a valid token
-        'Content-Type': 'application/json',
-    };
-    const options = {
-        method: 'get',
-        headers: headers,
-        muteHttpExceptions: true,
-    };
-
-    const response = UrlFetchApp.fetch(url, options);
-    const values = JSON.parse(response.getContentText()).values;
-
-    if (values && values.length > 0) {
-        // Flatten the array of arrays to a single-level array, assuming each sub-array has only one element (the value from column B)
-        const citizens = values.map(row => row[0]);
-        return citizens;
-    } else {
-        Logger.log('No data found.');
-        return [];
-    }
-}

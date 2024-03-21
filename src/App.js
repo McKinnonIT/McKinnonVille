@@ -12,6 +12,8 @@ function onMessage(event) {
       switch (event.message.slashCommand.commandId) {
         case 1:
           return slashPlay(event);
+        case 2:
+          return slashStats(event);
         case 99:
           return slashTest(event);
       }
