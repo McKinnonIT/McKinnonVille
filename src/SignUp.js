@@ -62,15 +62,7 @@ function signUpDialog() {
  * @returns {HTTPResponse|null} - If fails, a HTTPResponse object containing the result of the sign-up process. 
  */
 function signUp(name, email, userId, spaceId, house, occupation) {
-    var citizens = getCitizens();
     var availablePlots = getAvailablePlots();
-    var randomIndex = Math.floor(Math.random() * availablePlots.length);
-    var randomPlot = availablePlots[randomIndex];
-
-    // Check if email is already registered
-    if (citizens.includes(email) && !DEV_USERS.includes(email)) {
-        return { text: `You (${email}) are already playing!` };
-    }
 
     // Check if there are available plots
     if (availablePlots.length === 0) {
@@ -82,24 +74,26 @@ function signUp(name, email, userId, spaceId, house, occupation) {
         return { text: `Information missing, please email help@mckinnonsc.vic.edu.au for help.` };
     }
 
+    var randomIndex = Math.floor(Math.random() * availablePlots.length);
+    var randomPlot = availablePlots[randomIndex];
 
-    var signUpResponse = appendRow([
-        name,
-        email,
-        randomPlot,
-        userId,
-        spaceId,
-        house,
-        0, // Gold
-        1, // Plot Level
-        null, // Current Occupation Level (null as it is populated by HLOOKUP)
-        occupation,
-        ...Array(13).fill(1) // Fill occupation levels with 1
-    ]);
+    try {
+        // Attempt to fetch or create a new citizen
+        var citizen = new Citizen(email, {
+            name: name,
+            plot: randomPlot,
+            house: house,
+            occupation: occupation,
+            userId: userId,
+            spaceId: spaceId
+            // Include any additional stats that are relevant during sign-up
+        }, true); // Pass true for createIfNotExist to ensure creation if the citizen does not exist
 
-    if (signUpResponse.getResponseCode() !== 200) {
-        return signUpResponse;
+        return allocatePlot(randomPlot);
+
+    } catch (error) {
+        // Handle any errors that occurred during citizen creation or plot allocation
+        Logger.log(error.message);
+        return { text: `An error occurred: ${error.message}` };
     }
-
-    return allocatePlot(randomPlot);
 }

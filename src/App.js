@@ -14,6 +14,8 @@ function onMessage(event) {
           return slashPlay(event);
         case 2:
           return slashStats(event);
+        case 3:
+          return slashQuiz(event);
         case 99:
           return slashTest(event);
       }

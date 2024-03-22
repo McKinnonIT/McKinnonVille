@@ -1,16 +1,19 @@
 function testCitizen() {
-    try {
-        const citizenEmail = "sam.neal@mckinnonsc.vic.edu.au";
-        const citizen = new Citizen(citizenEmail);
-        Logger.log(citizen);
-    } catch (error) {
-        Logger.log(error.message);
-    }
+    var newCitizen = new Citizen("new.email@example.com", {
+        name: "New Name",
+        plot: "New Plot",
+        house: "New House",
+        gold: 500,
+        plotLevel: 2,
+        occupationLevel: 2,
+        occupation: "New Occupation"
+    }, true);
+
+    // Trying to fetch a citizen without creating a new one if they don't exist
+    // var existingCitizen = new Citizen("existing.email@example.com", {}, false);
 }
 
-function testFunc() {
-    return null
-}
+
 
 function evaluateSubmittedAnswers(submittedAnswers) {
     const sheetName = 'Test Questions';

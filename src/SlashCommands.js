@@ -7,6 +7,11 @@ function slashTest(event) {
     // return selectOccupationDialog(event);
 }
 
+function slashQuiz(event) {
+    var citizen = new Citizen(event.user.email);
+    return sendQuiz(citizen.occupation, citizen.occupationLevel);
+}
+
 function slashStats(event) {
     var citizen = new Citizen(event.user.email);
     if (citizen) {
