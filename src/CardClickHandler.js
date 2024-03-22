@@ -14,13 +14,13 @@ function onCardClick(event) {
     }
 
     if (invokedFunction === 'handleQuizSubmission') {
+        var quizResults = evaluateSubmittedAnswers(event.common.formInputs);
         return {
             "action_response": {
                 "type": "NEW_MESSAGE",
             },
-            "text": `${JSON.stringify(event.common.formInputs)}`
+            "text": `You got ${quizResults.correctAnswers.count} out of ${Object.keys(event.common.formInputs).length} questions correct!`
         }
-        // return markQuiz(event);
     }
 
     if (invokedFunction === 'handleOccupationSelection') {
@@ -35,7 +35,7 @@ function onCardClick(event) {
             }
         }
 
-        var citizen = getCitizenStats(event.user.email);
+        var citizen = new Citizen(event.user.email);
         if (citizen) {
             return sendCitizenStatsMessage(
                 citizen.name,

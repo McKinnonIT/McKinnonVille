@@ -118,3 +118,59 @@ function sendQuiz(occupation, level) {
         }
     }
 }
+
+/**
+ * Evaluates submitted answers against the correct answers stored in a Google Sheet.
+ * For each submitted answer, it checks if the answer ID matches the answer key in the sheet.
+ * The function returns the count of correct and incorrect answers along with their question IDs.
+ *
+ * @param {Object} submittedAnswers An object containing question IDs as keys and submitted answer details.
+ * The structure for each question's answer is {"": {"stringInputs": {"value": ["answerId"]}}}.
+ * @return {Object} An object with two main properties:
+ *   - correctAnswers: { count: Number, questionIds: Array }
+ *   - incorrectAnswers: { count: Number, questionIds: Array }
+ * Each property contains the count of correct or incorrect answers and an array of their respective question IDs.
+ */
+
+function evaluateSubmittedAnswers(submittedAnswers) {
+    const sheetName = 'Test Questions';
+    const range = `${sheetName}!A:I`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}`;
+    const headers = {
+        'Authorization': 'Bearer ' + getServiceAccountToken(),
+        'Content-Type': 'application/json',
+    };
+    const options = {
+        method: 'get',
+        headers: headers,
+        muteHttpExceptions: true,
+    };
+
+    const response = UrlFetchApp.fetch(url, options);
+    const { values } = JSON.parse(response.getContentText());
+
+    let correctCount = 0;
+    const correctQuestions = [];
+    const incorrectQuestions = [];
+
+    Object.entries(submittedAnswers).forEach(([questionId, { "": { stringInputs: { value: [submittedAnswerId] } } }]) => {
+        const questionRow = values.find(row => row[0] === questionId);
+        if (questionRow && questionRow[8] === submittedAnswerId) { // Assuming answer keys are in column I (index 8)
+            correctCount++;
+            correctQuestions.push(questionId);
+        } else {
+            incorrectQuestions.push(questionId);
+        }
+    });
+
+    return {
+        correctAnswers: {
+            count: correctCount,
+            questionIds: correctQuestions,
+        },
+        incorrectAnswers: {
+            count: incorrectQuestions.length,
+            questionIds: incorrectQuestions,
+        },
+    };
+}

@@ -8,7 +8,7 @@ function slashTest(event) {
 }
 
 function slashStats(event) {
-    var citizen = getCitizenStats(event.user.email);
+    var citizen = new Citizen(event.user.email);
     if (citizen) {
         return sendCitizenStatsMessage(
             citizen.name,

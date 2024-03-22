@@ -1,37 +1,45 @@
-/**
- * Gets statistics for a single citizen or all citizens if no email is provided.
- * @param {string} [email] - The email to search for a specific citizen's stats.
- * @returns {Object|Array|null} The statistics for a citizen or all citizens.
- */
+class Citizen {
+    constructor(email) {
+        const citizenStats = getCitizenStats(email);
+        if (citizenStats) {
+            this.name = citizenStats.name;
+            this.email = citizenStats.email;
+            this.plot = citizenStats.plot;
+            this.house = citizenStats.house;
+            this.gold = citizenStats.gold;
+            this.plotLevel = citizenStats.plotLevel;
+            this.occupationLevel = citizenStats.occupationLevel;
+            this.occupation = citizenStats.occupation;
+        } else {
+            throw new Error('Citizen not found.');
+        }
+    }
+}
+
+// Function to get citizen stats, adapted from your getCitizenStats example
 function getCitizenStats(email) {
-    const sheetName = 'Citizens'; // The name of your sheet
-    const range = 'A3:V'; // Adjust if you need a different column or specific rows
+    const sheetName = 'Citizens';
+    const range = 'A3:V';
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(sheetName + '!' + range)}`;
     const headers = {
-        'Authorization': 'Bearer ' + getServiceAccountToken(), // Assumes getServiceAccountToken() is defined and returns a valid token
+        'Authorization': 'Bearer ' + getServiceAccountToken(),
         'Content-Type': 'application/json',
     };
-    const response = UrlFetchApp.fetch(url, { method: 'get', headers: headers, muteHttpExceptions: true });
+    const options = { method: 'get', headers: headers, muteHttpExceptions: true };
+    const response = UrlFetchApp.fetch(url, options);
     const values = JSON.parse(response.getContentText()).values || [];
 
     if (values.length === 0) {
         Logger.log('No data found.');
-        return [];
+        return null;
     }
 
-    if (email) {
-        // Search for a citizen by email
-        const citizenIndex = values.findIndex(row => row[1] === email);
-        if (citizenIndex === -1) {
-            Logger.log('Citizen not found.');
-            return null;
-        }
-        const citizen = values[citizenIndex];
-        return mapCitizenData(citizen);
-    } else {
-        // Return stats for all citizens
-        return values.map(mapCitizenData);
+    const citizenIndex = values.findIndex(row => row[1] === email);
+    if (citizenIndex === -1) {
+        Logger.log('Citizen not found.');
+        return null;
     }
+    return mapCitizenData(values[citizenIndex]);
 }
 
 function mapCitizenData(citizen) {
