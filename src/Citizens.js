@@ -23,8 +23,7 @@ class Citizen {
                         house: "Default House",
                         gold: 0,
                         plotLevel: 1,
-                        occupationLevel: 1,
-                        occupation: "",
+                        occupation: "Teacher",
                         userId: "default/userId",
                         spaceId: "default/spaceI",
                         ...stats // Merge stats if provided
@@ -47,15 +46,9 @@ class Citizen {
      * @param {Object} properties The properties to be assigned to the citizen.
      */
     initializeProperties(properties) {
-        this.name = properties.name;
-        this.plot = properties.plot;
-        this.userId = properties.userId;
-        this.spaceId = properties.spaceId;
-        this.house = properties.house;
-        this.gold = properties.gold;
-        this.plotLevel = properties.plotLevel;
-        this.occupationLevel = properties.occupationLevel;
-        this.occupation = properties.occupation;
+        Object.keys(properties).forEach(key => {
+            this[key] = properties[key];
+        });
     }
 }
 
@@ -91,8 +84,8 @@ function mapCitizenData(citizen) {
  */
 function createNewCitizen(citizen) {
     // Extracting properties from the citizen object
-    const { name, email, plot, userId, spaceId, house, gold, plotLevel, occupationLevel, occupation } = citizen;
-    addNewCitizenRow(name, email, plot, userId, spaceId, house, gold, plotLevel, occupationLevel, occupation);
+    const { name, email, plot, userId, spaceId, house, gold, plotLevel, occupation } = citizen;
+    addNewCitizenRow(name, email, plot, userId, spaceId, house, gold, plotLevel, occupation);
 }
 
 
