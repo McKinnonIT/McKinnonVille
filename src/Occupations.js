@@ -34,7 +34,7 @@ function getOccupationItems(occupations) {
     // Map the occupations to the items format expected by the selectionInput
     const occupationItems = occupations.map(occupation => ({
         text: `${occupation.icon} ${occupation.name}`,
-        value: occupation.name.replace(/\s+/g, ''), // Remove spaces for the value
+        value: occupation.name,
         selected: false,
     }));
     return occupationItems
