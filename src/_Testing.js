@@ -1,75 +1,61 @@
-function testFunc() {
-    return null
+function testCitizen() {
+    var newCitizen = new Citizen("new.email@example.com", {
+        name: "Default Name",
+        plot: "AA00",
+        house: "Gilmore",
+        gold: 0,
+        plotLevel: 1,
+        occupationLevel: 1,
+        occupation: "Teacher"
+    }, true);
+    Logger.log(newCitizen);
+
+    // Trying to fetch a citizen without creating a new one if they don't exist
+    // var existingCitizen = new Citizen("sam.neal@mckinnonsc.vic.edu.au", {}, false);
+    // Logger.log(existingCitizen);
 }
 
-function testMultiSelect() {
+
+
+function evaluateSubmittedAnswers(submittedAnswers) {
+    const sheetName = 'Test Questions';
+    const range = `${sheetName}!A:I`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}`;
+    const headers = {
+        'Authorization': 'Bearer ' + getServiceAccountToken(),
+        'Content-Type': 'application/json',
+    };
+    const options = {
+        method: 'get',
+        headers: headers,
+        muteHttpExceptions: true,
+    };
+
+    const response = UrlFetchApp.fetch(url, options);
+    const { values } = JSON.parse(response.getContentText());
+
+    let correctCount = 0;
+    const correctQuestions = [];
+    const incorrectQuestions = [];
+
+    Object.entries(submittedAnswers).forEach(([questionId, { "": { stringInputs: { value: [submittedAnswerId] } } }]) => {
+        const questionRow = values.find(row => row[0] === questionId);
+        if (questionRow && questionRow[8] === submittedAnswerId) { // Assuming answer keys are in column I (index 8)
+            correctCount++;
+            correctQuestions.push(questionId);
+        } else {
+            incorrectQuestions.push(questionId);
+        }
+    });
+
     return {
-        cardsV2: [
-            {
-                cardId: 'avatarCard',
-                card: {
-                    name: 'Avatar Card',
-                    header: 'header',
-                    sections: [
-                        {
-                            header: 'Select contacts',
-                            widgets: [
-                                {
-                                    selectionInput: {
-                                        type: 'MULTI_SELECT',
-                                        label: 'Selected contacts',
-                                        name: 'contacts',
-                                        multiSelectMaxSelectedItems: 3,
-                                        multiSelectMinQueryLength: 1,
-                                        items: [
-                                            {
-                                                value: 'contact-1',
-                                                startIconUri:
-                                                    'https://www.gstatic.com/images/branding/product/2x/contacts_48dp.png',
-                                                text: 'Contact 1',
-                                                bottomText: 'Contact one description',
-                                                selected: false,
-                                            },
-                                            {
-                                                value: 'contact-2',
-                                                startIconUri:
-                                                    'https://www.gstatic.com/images/branding/product/2x/contacts_48dp.png',
-                                                text: 'Contact 2',
-                                                bottomText: 'Contact two description',
-                                                selected: false,
-                                            },
-                                            {
-                                                value: 'contact-3',
-                                                startIconUri:
-                                                    'https://www.gstatic.com/images/branding/product/2x/contacts_48dp.png',
-                                                text: 'Contact 3',
-                                                bottomText: 'Contact three description',
-                                                selected: false,
-                                            },
-                                            {
-                                                value: 'contact-4',
-                                                startIconUri:
-                                                    'https://www.gstatic.com/images/branding/product/2x/contacts_48dp.png',
-                                                text: 'Contact 4',
-                                                bottomText: 'Contact four description',
-                                                selected: false,
-                                            },
-                                            {
-                                                value: 'contact-5',
-                                                startIconUri:
-                                                    'https://www.gstatic.com/images/branding/product/2x/contacts_48dp.png',
-                                                text: 'Contact 5',
-                                                bottomText: 'Contact five description',
-                                                selected: false,
-                                            },
-                                        ],
-                                    },
-                                },
-                            ],
-                        },
-                    ],
-                },
-            },
-        ],
+        correctAnswers: {
+            count: correctCount,
+            questionIds: correctQuestions,
+        },
+        incorrectAnswers: {
+            count: incorrectQuestions.length,
+            questionIds: incorrectQuestions,
+        },
     };
 }
