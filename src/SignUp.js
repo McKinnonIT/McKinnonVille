@@ -28,7 +28,7 @@ function signUpDialog() {
                                                 {
                                                     "text": "Sign up",
                                                     "icon": {
-                                                        "knownIcon": "VIDEO_PLAY",
+                                                        "iconUrl": "https://cdn-icons-png.flaticon.com/512/5599/5599530.png",
                                                     },
                                                     "onClick": {
                                                         "action": {
