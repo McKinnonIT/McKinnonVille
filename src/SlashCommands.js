@@ -3,8 +3,8 @@ function slashPlay(event) {
 }
 
 function slashTest(event) {
-    return sendQuiz("Art", 1);
-    // return selectOccupationDialog(event);
+    return selectOccupationDialog(event);
+    // return sendQuiz("Art", 1);
 }
 
 function slashQuiz(event) {
