@@ -1,14 +1,17 @@
 function testCitizen() {
-    var newCitizen = new Citizen("new.email@example.com", {
-        name: "Default Name",
-        plot: "AA00",
-        house: "Gilmore",
-        gold: 0,
-        plotLevel: 1,
-        occupationLevel: 1,
-        occupation: "Teacher"
-    }, true);
-    Logger.log(newCitizen);
+    var citizen = new Citizen("sam.neal@mckinnonsc.vic.edu.au")
+    Logger.log(citizen.exists())
+
+    // var newCitizen = new Citizen("new.email@example.com", {
+    //     name: "Default Name",
+    //     plot: "AA00",
+    //     house: "Gilmore",
+    //     gold: 0,
+    //     plotLevel: 1,
+    //     occupationLevel: 1,
+    //     occupation: "Teacher"
+    // }, true);
+    // Logger.log(newCitizen);
 
     // Trying to fetch a citizen without creating a new one if they don't exist
     // var existingCitizen = new Citizen("sam.neal@mckinnonsc.vic.edu.au", {}, false);

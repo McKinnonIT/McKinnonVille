@@ -50,6 +50,10 @@ class Citizen {
             this[key] = properties[key];
         });
     }
+
+    exists() {
+        return Object.keys(this).length > 0;
+    }
 }
 
 /**
