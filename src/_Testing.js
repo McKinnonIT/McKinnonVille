@@ -1,7 +1,18 @@
-function testCitizen() {
-    var citizen = new Citizen("sam.neal@mckinnonsc.vic.edu.au")
-    Logger.log(citizen.exists())
+async function testCitizen() {
+    var house = getUserHouse("sam.neal@mckinnonsc.vic.edu.au")
+    console.log(house)
+    var signUpResponse = await signUp("Sam Neal", "sam.neal@mckinnonsc.vic.edu.au", "users/107937830411654453433", "spaces/-m3q0MAAAAE", house, "Engineer");
+    console.log(signUpResponse)
 
+    // get and log a citizens house
+    // var house = getUserHouse("sam.neal@mckinnonsc.vic.edu.au")
+    // Logger.log(house)
+
+    // var availablePlots = getAvailablePlots();
+    // Logger.log(availablePlots);
+    // var citizen = new Citizen("sam.neal@mckinnonsc.vic.edu.au")
+    // Logger.log(citizen.exists())
+    // Logger.log(citizen)
     // var newCitizen = new Citizen("new.email@example.com", {
     //     name: "Default Name",
     //     plot: "AA00",
@@ -23,7 +34,7 @@ function testCitizen() {
 function evaluateSubmittedAnswers(submittedAnswers) {
     const sheetName = 'Test Questions';
     const range = `${sheetName}!A:I`;
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(range)}`;
     const headers = {
         'Authorization': 'Bearer ' + getServiceAccountToken(),
         'Content-Type': 'application/json',

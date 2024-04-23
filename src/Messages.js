@@ -1,3 +1,22 @@
+/**
+ * Sends a message to a Google Chat space, with an option to send it as a private message to a specific user.
+ * The function constructs a message payload and makes an HTTP POST request to the Google Chat API.
+ * 
+ * @param {string} message - The text content of the message to be sent.
+ * @param {string} spaceId - The identifier of the Google Chat space where the message will be sent.
+ * @param {boolean} [sendPrivately=false] - Optional. If set to true, the message will be sent as a private message.
+ * @param {string} [userId=''] - Optional. The user identifier; required if sendPrivately is true to specify the recipient.
+ * 
+ * @example
+ * // Send a public message to a space
+ * sendMessage("Hello, world!", "spaces/AAAABdHzBzg");
+ * 
+ * // Send a private message to a user within a space
+ * sendMessage("Hello, privately!", "spaces/AAAABdHzBzg", true, "users/12345678901234567890");
+ * 
+ * Note: If sendPrivately is true and userId is not provided, the function will not modify the behavior
+ * and the message will be sent publicly to the space.
+ */
 function sendMessage(message, spaceId, sendPrivately = false, userId = '') {
     const url = `https://chat.googleapis.com/v1/${spaceId}/messages`;
     const headers = {

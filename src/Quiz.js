@@ -19,7 +19,7 @@ function testF() {
 function getQuizQuestions(occupation, level, numQuestions = 5) {
     const sheetName = 'Test Questions'; // Update this to your actual sheet name
     const range = encodeURIComponent(`${sheetName}!A2:H`); // Adjust range as necessary
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${range}`;
 
     const headers = {
         'Authorization': 'Bearer ' + getServiceAccountToken(),
@@ -56,6 +56,15 @@ function getQuizQuestions(occupation, level, numQuestions = 5) {
 }
 
 
+/**
+ * Generates widgets for quiz questions in a Google Chat dialog. Each question is represented
+ * as a radio button selection input.
+ * 
+ * @param {Array} questions - An array of question objects, each containing an `id`, `question` text,
+ *                            and `options` array.
+ * @returns {Array} An array of widgets formatted for Google Chat dialogs, where each widget
+ *                  corresponds to one quiz question.
+ */
 function generateQuizQuestionsWidgets(questions) {
     const widgets = questions.map((question, index) => ({
         selectionInput: {
@@ -73,6 +82,14 @@ function generateQuizQuestionsWidgets(questions) {
     return widgets
 }
 
+/**
+ * Constructs and sends a quiz dialog based on the occupation and level specified. The quiz questions
+ * are fetched based on the occupation and level and then formatted into a dialog for user interaction.
+ * 
+ * @param {string} occupation - The occupation related to the quiz.
+ * @param {number} level - The level of the quiz, typically used to determine the difficulty or context of questions.
+ * @returns {object} An object formatted for Google Chat actions, specifically to display a dialog with quiz questions.
+ */
 function sendQuiz(occupation, level) {
     var questions = getQuizQuestions(occupation, level)
 
@@ -135,7 +152,7 @@ function sendQuiz(occupation, level) {
 function evaluateSubmittedAnswers(submittedAnswers) {
     const sheetName = 'Test Questions';
     const range = `${sheetName}!A:I`;
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(range)}`;
     const headers = {
         'Authorization': 'Bearer ' + getServiceAccountToken(),
         'Content-Type': 'application/json',
