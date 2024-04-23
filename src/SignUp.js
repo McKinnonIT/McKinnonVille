@@ -74,7 +74,7 @@ async function signUp(name, email, userId, spaceId, house, occupation) {
 
         // Check if there are available plots
         if (availablePlots.length === 0) {
-            throw new Error("Sorry, there are no available plots at the moment.")
+            throw new Error("😳 Uhh, it looks like we've run out of plots. Please email help@mckinnonsc.vic.edu.au and let us know.")
         }
 
         // Check if all required parameters are provided
@@ -86,22 +86,18 @@ async function signUp(name, email, userId, spaceId, house, occupation) {
         var randomPlot = availablePlots[randomIndex];
 
         // Attempt to fetch or create a new citizen
-        var citizen = new Citizen(email, {
+        var citizen = new Citizen(email, true, {
             name: name,
             plot: randomPlot,
             house: house,
             occupation: occupation,
             userId: userId,
             spaceId: spaceId
-            // Include any additional stats that are relevant during sign-up
-        }, true); // Pass true for createIfNotExist to ensure creation if the citizen does not exist
+        }); // Pass true for createIfNotExist to ensure creation if the citizen does not exist
 
-        // Throw an error if citizen does not exist
         if (!citizen.exists()) {
             throw new Error("Failed to create or fetch citizen.");
         }
-
-        var allocatePlotResponse = await allocatePlot(randomPlot);
 
         // Allocate plot and check if it succeeded
         var allocatePlotResponse = await allocatePlot(randomPlot);
@@ -120,8 +116,8 @@ async function signUp(name, email, userId, spaceId, house, occupation) {
 
     } catch (error) {
         // Handle any errors that occurred during citizen creation or plot allocation
-        Logger.log(error.message);
-        throw error;
+        console.error(error.stack);
+
         // Return an HTTPResponse-like object with the error message
         return {
             statusCode: 404,

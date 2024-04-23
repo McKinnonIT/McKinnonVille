@@ -14,4 +14,3 @@ function columnToLetter(column) {
     }
     return letter;
 }
-

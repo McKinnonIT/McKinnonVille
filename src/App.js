@@ -24,7 +24,7 @@ const SCOPES = scriptProperties.getProperty('SCOPES').split(',');
  */
 function isRegistered(email) {
   try {
-    const citizen = new Citizen(email);
+    const citizen = new Citizen(email, false);
     return citizen.exists();
   } catch (error) {
     Logger.log('Error checking registration: ' + error.toString());

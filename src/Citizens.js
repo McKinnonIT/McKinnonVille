@@ -5,10 +5,10 @@ class Citizen {
     /**
      * Constructs a Citizen instance, fetching their stats or creating a new profile if not found.
      * @param {string} email The citizen's email address, serving as a unique identifier.
-     * @param {Object} stats Optional. Additional properties for a newly created citizen.
      * @param {boolean} createIfNotExist Determines if a new citizen profile should be created if it doesn't exist.
+     * @param {Object} stats Optional. Additional properties for a newly created citizen.
      */
-    constructor(email, stats = {}, createIfNotExist = false) {
+    constructor(email, createIfNotExist = false, stats = {}) {
         try {
             const citizenStats = getCitizenStats(email);
             if (citizenStats) {
@@ -25,19 +25,15 @@ class Citizen {
                         plotLevel: 1,
                         occupation: "Teacher",
                         userId: "default/userId",
-                        spaceId: "default/spaceI",
+                        spaceId: "default/spaceId",
                         ...stats // Merge stats if provided
                     });
                     Logger.log("Citizen not found, creating a new citizen.")
                     createNewCitizen(this); // Create the new citizen
-                } else {
-                    throw new Error('Citizen not found and creation is not allowed.');
                 }
             }
         } catch (error) {
-            Logger.log("Error:", error.message);
-            // Handle cases where the citizen is not found and creation is not allowed
-            // This could involve setting the object to a default state, logging an error, etc.
+            console.log(error.stack)
         }
     }
 

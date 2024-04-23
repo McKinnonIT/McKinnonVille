@@ -1,8 +1,12 @@
 async function testCitizen() {
-    var house = getUserHouse("sam.neal@mckinnonsc.vic.edu.au")
-    console.log(house)
-    var signUpResponse = await signUp("Sam Neal", "sam.neal@mckinnonsc.vic.edu.au", "users/107937830411654453433", "spaces/-m3q0MAAAAE", house, "Engineer");
-    console.log(signUpResponse)
+    var citizen = new Citizen("sam.neal@mckinnonsc.vic.edu.au")
+    console.log(citizen)
+    console.log(citizen.exists())
+
+    // var house = getUserHouse("sam.neal@mckinnonsc.vic.edu.au")
+    // console.log(house)
+    // var signUpResponse = await signUp("Sam Neal", "sam.neal@mckinnonsc.vic.edu.au", "users/107937830411654453433", "spaces/-m3q0MAAAAE", house, "Engineer");
+    // console.log(signUpResponse)
 
     // get and log a citizens house
     // var house = getUserHouse("sam.neal@mckinnonsc.vic.edu.au")

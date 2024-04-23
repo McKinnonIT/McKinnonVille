@@ -91,9 +91,8 @@ function getUserHouse(email) {
     // Get the house based on the username
     house = houseMap.get(username);
 
-    // If the house is not found, throw an error, otherwise return the house
-    if (!houseMap.get(username)) {
-        throw new Error(`HouseNotFound: No house found email: ${email}`);
+    if (!house) {
+        throw new HouseNotFound(`No house found for email: ${email}`);
     }
-    return houseMap.get(user)
+    return house
 }
