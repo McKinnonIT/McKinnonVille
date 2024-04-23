@@ -1,8 +1,15 @@
+// Constants for the Google Sheets range and sheet name that stores occupation data.
 const OCCUPATIONS_SHEET_NAME = 'Setup';
 const OCCUPATIONS_RANGE = 'A14:B26';
 
+/**
+ * Fetches and returns a sorted list of occupations from a Google Sheet.
+ * Each occupation is expected to have an icon and a name.
+ *
+ * @returns {Array} An array of occupation objects, sorted alphabetically by name.
+ */
 function getOccupations() {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(OCCUPATIONS_SHEET_NAME + "!" + OCCUPATIONS_RANGE)}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(OCCUPATIONS_SHEET_NAME + "!" + OCCUPATIONS_RANGE)}`;
     const headers = {
         'Authorization': 'Bearer ' + getServiceAccountToken(),
         'Content-Type': 'application/json',
@@ -22,6 +29,7 @@ function getOccupations() {
             icon: row[0],
             name: row[1]
         }));
+        // Sort occupations alphabetically by name
         const sortedOccupations = occupations.sort((a, b) => a.name.localeCompare(b.name));
         return sortedOccupations;
     } else {
@@ -30,6 +38,12 @@ function getOccupations() {
     }
 }
 
+/**
+ * Converts an array of occupation objects into items for a selectionInput.
+ * 
+ * @param {Array} occupations - An array of occupation objects.
+ * @returns {Array} An array of items formatted for display in a selectionInput.
+ */
 function getOccupationItems(occupations) {
     // Map the occupations to the items format expected by the selectionInput
     const occupationItems = occupations.map(occupation => ({
@@ -37,9 +51,14 @@ function getOccupationItems(occupations) {
         value: occupation.name,
         selected: false,
     }));
-    return occupationItems
+    return occupationItems;
 }
 
+/**
+ * Generates a dialog for user to select an occupation using a dropdown menu in Google Chat.
+ * 
+ * @returns {object} An object formatted for triggering a dialog in Google Chat with a selectionInput.
+ */
 function selectOccupationDialog() {
     const occupations = getOccupations();
 

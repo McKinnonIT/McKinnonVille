@@ -35,7 +35,7 @@ class Citizen {
                 }
             }
         } catch (error) {
-            Logger.log(error.message);
+            Logger.log("Error:", error.message);
             // Handle cases where the citizen is not found and creation is not allowed
             // This could involve setting the object to a default state, logging an error, etc.
         }
@@ -101,7 +101,7 @@ function createNewCitizen(citizen) {
 function getCitizenStats(email) {
     const sheetName = 'Citizens';
     const range = 'A3:V';
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(sheetName + '!' + range)}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(sheetName + '!' + range)}`;
     const headers = {
         'Authorization': 'Bearer ' + getServiceAccountToken(),
         'Content-Type': 'application/json',
@@ -130,7 +130,7 @@ function getCitizenStats(email) {
 function getCitizens() {
     const sheetName = 'Citizens'; // The name of your sheet
     const range = 'B3:B'; // Adjust if you need a different column or specific rows
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(sheetName + '!' + range)}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(sheetName + '!' + range)}`;
     const headers = {
         'Authorization': 'Bearer ' + getServiceAccountToken(), // Assumes getServiceAccountToken() is defined and returns a valid token
         'Content-Type': 'application/json',
@@ -230,4 +230,6 @@ function sendCitizenStatsMessage(name, house, plot, occupation, occupationLevel,
         ]
     }
 }
+
+
 
