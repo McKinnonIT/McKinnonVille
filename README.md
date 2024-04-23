@@ -12,6 +12,7 @@ McKinnonVille is a Google Apps Script project designed to facilitate interactive
 - [Table of Contents](#table-of-contents)
 - [Features](#features)
 - [Setup](#setup)
+- [Environment Variables](#environment-variables)
 - [Usage](#usage)
 - [Development](#development)
   - [Local Development Setup for Google Apps Script](#local-development-setup-for-google-apps-script)
@@ -34,11 +35,24 @@ McKinnonVille is a Google Apps Script project designed to facilitate interactive
 3. **Bot Configuration**: Configure the bot in Google Chat with the necessary permissions and settings.
 4. **Spreadsheet Setup**: Create a Google Spreadsheet with the required structure for tracking data.
 
+## Environment Variables
+
+The application uses the following environment variables:
+
+- `SPREADSHEET_ID_DATA`: The ID of the Google Spreadsheet used for data storage.
+- `SPREADSHEET_ID_MAP`: The ID of the public Google Spreadsheet used for map & plot storage.
+- `PRIVATE_KEY`: The private key used for authentication with external services.
+- `CLIENT_EMAIL`: The client email used for authentication with external services.
+- `TOKEN_URI`: The URI used for retrieving authentication tokens.
+- `SCOPES`: The scopes for which the app will request access, as a comma-separated string.
+
+These variables are stored as script properties in Google Apps Script and can be accessed using `PropertiesService.getScriptProperties().getProperty('VARIABLE_NAME')`.
+
 ## Usage
 
-- `/play` - Opens a signup form for users to join McKinnonVille.
-- `/test` - Presents a multi-select card for testing purposes.
-- Responds to various user interactions with interactive cards, such as quiz answers or event signups.
+- `/play` - Opens a signup form for users to join McKinnonVille
+- `/stats` - Displays statistics for the user, including their progress and achievements in the game.
+- `/quiz` - Starts a quiz session, challenging users with questions related to their McKinnonVille career.
 
 ## Development
 
