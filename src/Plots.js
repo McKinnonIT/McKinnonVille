@@ -28,10 +28,10 @@ function getAvailablePlots(house) {
     var range = "Map"; // Define the range dynamically based on application needs
     var url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_MAP}/values/${range}?valueRenderOption=FORMULA`;
     var houseFormulas = {
-        chisholm: '=IMAGE("https://raw.githubusercontent.com/McKinnonIT/McKinnonVille/main/assets/img/Grass%201_chisholm.png")',
-        monash: '=IMAGE("https://raw.githubusercontent.com/McKinnonIT/McKinnonVille/main/assets/img/Grass%201_monash.png")',
-        flynn: '=IMAGE("https://raw.githubusercontent.com/McKinnonIT/McKinnonVille/main/assets/img/Grass%201_flynn.png")',
-        gilmore: '=IMAGE("https://raw.githubusercontent.com/McKinnonIT/McKinnonVille/main/assets/img/Grass%201_gilmore.png")'
+        chisholm: '=image("https://github.com/McKinnonIT/McKinnonVille/blob/main/assets/img/Grass-Chisholm.png?raw=true",1)',
+        monash: '=image("https://github.com/McKinnonIT/McKinnonVille/blob/main/assets/img/Grass-Monash-alt.png?raw=true",1)',
+        flynn: '=IMAGE("https://github.com/McKinnonIT/McKinnonVille/blob/main/assets/img/Grass-Flynn.png?raw=true",1)',
+        gilmore: '=image("https://github.com/McKinnonIT/McKinnonVille/blob/main/assets/img/Grass-Gilmore.png?raw=true",1)'
     };
 
     // Ensure keys in houseFormulas are in lowercase for accurate matching

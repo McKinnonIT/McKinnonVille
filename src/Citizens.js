@@ -65,10 +65,9 @@ function mapCitizenData(citizen) {
         userId: citizen[3],
         spaceId: citizen[4],
         house: citizen[5],
-        gold: citizen[6],
-        plotLevel: citizen[7],
-        occupationLevel: citizen[8],
-        occupation: citizen[9],
+        occupation: citizen[6],
+        occupationLevel: citizen[7],
+        gold: citizen[8],
     };
 }
 

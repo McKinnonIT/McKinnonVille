@@ -4,21 +4,9 @@ function testF() {
     Logger.log(qs)
 }
 
-/**
- * Retrieves a specified number of quiz questions filtered by occupation and level from a Google Sheet.
- * The questions are randomly selected and limited to the specified number if there are more available.
- * 
- * The Google Sheet should follow a specific format with columns:
- * [Question ID, Occupation, Level, Question, Option 1, Option 2, Option 3, Option 4, Answer Key]
- * 
- * @param {string} occupation The occupation to filter questions by.
- * @param {number} level The difficulty level of the questions to retrieve.
- * @param {number} [numQuestions=5] (Optional) The maximum number of questions to retrieve. Defaults to 5.
- * @return {Array<Object>} An array of question objects, each containing the question, options, and answer key.
-*/
-function getQuizQuestions(occupation, level, numQuestions = 5) {
-    const sheetName = 'Test Questions'; // Update this to your actual sheet name
-    const range = encodeURIComponent(`${sheetName}!A2:H`); // Adjust range as necessary
+function getSubjectsForOccupation(occupation) {
+    const occupationsSheetName = 'Occupations';
+    const range = encodeURIComponent(`${occupationsSheetName}!B:D`);
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${range}`;
 
     const headers = {
@@ -32,19 +20,68 @@ function getQuizQuestions(occupation, level, numQuestions = 5) {
         muteHttpExceptions: true,
     };
 
-    // Fetching the data from the sheet
     const response = UrlFetchApp.fetch(url, options);
     const result = JSON.parse(response.getContentText());
     const values = result.values;
 
-    // Check if we have received any data
     if (!values || values.length === 0) {
-        Logger.log('No data found.');
+        Logger.log('No subjects data found.');
         return [];
     }
 
-    // Filter and map the questions based on occupation and level
-    const filteredQuestions = values.filter(row => row[1] === occupation && row[2] == level).map(row => ({
+    // Filter rows by occupation and extract the subjects
+    const subjectsRow = values.filter(row => row[0].toLowerCase() === occupation.toLowerCase());
+    return subjectsRow.length > 0 ? subjectsRow[0][2].split(',').map(subject => subject.trim()) : [];
+}
+
+
+/**
+ * Retrieves a specified number of quiz questions filtered by occupation and level from a Google Sheet.
+ * The questions are randomly selected and limited to the specified number if there are more available.
+ * 
+ * The Google Sheet should follow a specific format with columns:
+ * [Question ID, Occupation, Level, Question, Option 1, Option 2, Option 3, Option 4, Answer Key]
+ * 
+ * @param {string} occupation The occupation to filter questions by.
+ * @param {number} level The difficulty level of the questions to retrieve.
+ * @param {number} [numQuestions=5] (Optional) The maximum number of questions to retrieve. Defaults to 5.
+ * @return {Array<Object>} An array of question objects, each containing the question, options, and answer key.
+*/
+function getQuizQuestions(occupation, level, numQuestions = 5) {
+    const subjects = getSubjectsForOccupation(occupation);
+    if (subjects.length === 0) {
+        Logger.log('No subjects found for the given occupation.');
+        return [];
+    }
+
+    const questionsSheetName = 'Test Questions'; // Update this to your actual sheet name for questions
+    const range = encodeURIComponent(`${questionsSheetName}!A2:H`);
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${range}`;
+
+    const headers = {
+        'Authorization': 'Bearer ' + getServiceAccountToken(),
+        'Content-Type': 'application/json',
+    };
+
+    const options = {
+        method: 'get',
+        headers: headers,
+        muteHttpExceptions: true,
+    };
+
+    const response = UrlFetchApp.fetch(url, options);
+    const result = JSON.parse(response.getContentText());
+    const values = result.values;
+
+    if (!values || values.length === 0) {
+        Logger.log('No quiz data found.');
+        return [];
+    }
+
+    // Filter questions based on matching any subject and the level
+    const filteredQuestions = values.filter(row =>
+        subjects.includes(row[1]) && row[2] == level
+    ).map(row => ({
         id: row[0],
         question: row[3],
         options: [row[4], row[5], row[6], row[7]],
@@ -74,7 +111,7 @@ function generateQuizQuestionsWidgets(questions) {
             items: question.options.map((option, optionIndex) => ({
                 text: `${option}`,
                 value: (optionIndex + 1).toString(),
-                selected: true
+                selected: false
             }))
         }
     }));
@@ -92,6 +129,34 @@ function generateQuizQuestionsWidgets(questions) {
  */
 function sendQuiz(occupation, level) {
     var questions = getQuizQuestions(occupation, level)
+
+    if (questions.length === 0) {
+        return {
+            "action_response": {
+                "type": "DIALOG",
+                "dialog_action": {
+                    "dialog": {
+                        "body": {
+                            "sections": [
+                                {
+                                    "header": "",
+                                    "collapsible": false,
+                                    "uncollapsibleWidgetsCount": 1,
+                                    "widgets": [
+                                        {
+                                            "textParagraph": {
+                                                "text": "No quiz questions found for the specified occupation and level. Please email help@mckinnonsc.vic.edu.au"
+                                            }
+                                        },
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+    }
 
     return {
         "action_response": {

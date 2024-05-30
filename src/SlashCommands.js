@@ -41,7 +41,6 @@ function slashPlay(event) {
 
 function slashTest(event) {
     return selectOccupationDialog(event);
-    // return sendQuiz("Art", 1);
 }
 
 /**
@@ -80,4 +79,8 @@ function slashStats(event) {
             "text": "You are not registered to play McKinnonVille. Type /play to sign up!"
         }
     }
+}
+
+function slashVote(event) {
+    return sendVotingDialog(event);
 }

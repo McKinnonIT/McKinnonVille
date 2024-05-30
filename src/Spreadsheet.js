@@ -27,16 +27,45 @@ function addNewCitizenRow(name, email, plot, userId, spaceId, house, currentGold
     const OCCUPATION_LEVELS_RANGE = "K2:W2";
 
     // The formula for currentOccupationLevel
-    const currentOccupationLevelFormula = `=INDEX(INDIRECT("K"&ROW()&":W"&ROW()), MATCH(INDIRECT("J"&ROW()), INDIRECT("${OCCUPATION_LEVELS_RANGE}"), 0))`;
-
-    // Create an array filled with the number 1 for columns K to W
-    // There are 13 columns from K to W (inclusive), so we create an array of 13 ones.
-    const initialOccupationLevels = new Array(13).fill(1);
+    // const currentOccupationLevelFormula = `=INDEX(INDIRECT("K"&ROW()&":W"&ROW()), MATCH(INDIRECT("J"&ROW()), INDIRECT("${OCCUPATION_LEVELS_RANGE}"), 0))`;
+    const villageTaxRateFormula = `=VLOOKUP(G15,'Occupation Stats'!B:O,if(H15=1,10,if(H15=2,11,IF(H15=3,12,IF(H15=4,13,IF(H15=5,14,1))))),false)`
+    const educationContributionFormula = `=VLOOKUP(G15,'Occupation Stats'!B:G,4,FALSE)*H15`
+    const healthContributionFormula = `=VLOOKUP(G15,'Occupation Stats'!B:G,5,FALSE)*H15`
+    const happinessContributionFormula = `=VLOOKUP(G15,'Occupation Stats'!B:G,6,FALSE)*H15`
 
     // Combine the provided values with the additional ones for columns K to W,
     const payload = JSON.stringify({
         values: [
-            [name, email, plot, userId, spaceId, house, currentGold, currentPlotLevel, currentOccupationLevelFormula, currentOccupation, ...initialOccupationLevels],
+            [
+                // Name
+                name,
+                // Email
+                email,
+                // Plot
+                plot,
+                // User ID
+                userId,
+                // Space ID
+                spaceId,
+                // House / Village
+                house,
+                // Occupation
+                currentOccupation,
+                // Occupation Level
+                1,
+                // Annual Salary (Gold pretax)
+                "0000",
+                // Village Tax Rate
+                villageTaxRateFormula,
+                // Salary (Post Tax)
+                "0000",
+                // Education Contribution
+                educationContributionFormula,
+                // Health Contribution
+                healthContributionFormula,
+                // Happiness Contribtion
+                happinessContributionFormula
+            ]
         ],
     });
 

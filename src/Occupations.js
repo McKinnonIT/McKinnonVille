@@ -1,6 +1,6 @@
 // Constants for the Google Sheets range and sheet name that stores occupation data.
-const OCCUPATIONS_SHEET_NAME = 'Setup';
-const OCCUPATIONS_RANGE = 'A14:B26';
+const OCCUPATIONS_SHEET_NAME = 'Occupations';
+const OCCUPATIONS_RANGE = 'A2:B';
 
 /**
  * Fetches and returns a sorted list of occupations from a Google Sheet.
