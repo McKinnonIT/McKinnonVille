@@ -5,3 +5,11 @@ class HouseNotFound extends Error {
         this.code = 404;
     }
 }
+
+class DateOutOfRange extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "DateOutOfRange";
+        this.code = 400;
+    }
+}

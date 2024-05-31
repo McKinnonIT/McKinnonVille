@@ -1,7 +1,4 @@
-async function testTester() {
-    var q = getVotingOptions(1)
-    var qs = generateVotingWidgets(q)
-    Logger.info(sendVotingDialog())
-    //     var citizen = new Citizen("sam.neal@mckinnonsc.vic.edu.au")
-    //     return sendQuiz(citizen.occupation, citizen.occupationLevel);
+function testTesting() {
+    const week = getWeek("01/01/2022")
+    Logger.log(week)
 }
