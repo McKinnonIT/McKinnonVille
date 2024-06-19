@@ -27,11 +27,12 @@ function addNewCitizenRow(name, email, plot, userId, spaceId, house, currentGold
     const OCCUPATION_LEVELS_RANGE = "K2:W2";
 
     // The formula for currentOccupationLevel
-    // const currentOccupationLevelFormula = `=INDEX(INDIRECT("K"&ROW()&":W"&ROW()), MATCH(INDIRECT("J"&ROW()), INDIRECT("${OCCUPATION_LEVELS_RANGE}"), 0))`;
-    const villageTaxRateFormula = `=VLOOKUP(G15,'Occupation Stats'!B:O,if(H15=1,10,if(H15=2,11,IF(H15=3,12,IF(H15=4,13,IF(H15=5,14,1))))),false)`
-    const educationContributionFormula = `=VLOOKUP(G15,'Occupation Stats'!B:G,4,FALSE)*H15`
-    const healthContributionFormula = `=VLOOKUP(G15,'Occupation Stats'!B:G,5,FALSE)*H15`
-    const happinessContributionFormula = `=VLOOKUP(G15,'Occupation Stats'!B:G,6,FALSE)*H15`
+    const annualSalaryFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:O"), IF(INDIRECT("H" & ROW())=1, 10, IF(INDIRECT("H" & ROW())=2, 11, IF(INDIRECT("H" & ROW())=3, 12, IF(INDIRECT("H" & ROW())=4, 13, IF(INDIRECT("H" & ROW())=5, 14, 1))))), FALSE)`
+    const villageTaxRateFormula = `=VLOOKUP(INDIRECT("F" & ROW()), INDIRECT("Villages!A:O"), 15, FALSE)`
+    const salaryPostTaxFormula = `=INDIRECT("I" & ROW()) - (INDIRECT("I" & ROW()) * INDIRECT("J" & ROW()))`
+    const educationContributionFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:G"), 4, FALSE) * INDIRECT("H" & ROW())`
+    const healthContributionFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:G"), 5, FALSE) * INDIRECT("H" & ROW())`
+    const happinessContributionFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:G"), 6, FALSE) * INDIRECT("H" & ROW())`
 
     // Combine the provided values with the additional ones for columns K to W,
     const payload = JSON.stringify({
@@ -54,11 +55,11 @@ function addNewCitizenRow(name, email, plot, userId, spaceId, house, currentGold
                 // Occupation Level
                 1,
                 // Annual Salary (Gold pretax)
-                "0000",
+                annualSalaryFormula,
                 // Village Tax Rate
                 villageTaxRateFormula,
                 // Salary (Post Tax)
-                "0000",
+                salaryPostTaxFormula,
                 // Education Contribution
                 educationContributionFormula,
                 // Health Contribution
