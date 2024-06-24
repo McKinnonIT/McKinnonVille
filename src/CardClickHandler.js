@@ -19,6 +19,13 @@ async function onCardClick(event) {
     }
 }
 
+async function handleSendQuiz(event) {
+    Logger.info(event)
+    Logger.log(event)
+    console.log("HELLO WORLD SENDING QUIZ")
+    // return sendQuiz()
+}
+
 async function handleSignUp(event) {
     return signUp(event.user.displayName, event.user.email, event.user.name, event.space.name);
 }

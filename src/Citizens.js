@@ -95,7 +95,7 @@ function createNewCitizen(citizen) {
  */
 function getCitizenStats(email) {
     const sheetName = 'Citizens';
-    const range = 'A3:V';
+    const range = 'A2:V';
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(sheetName + '!' + range)}`;
     const headers = {
         'Authorization': 'Bearer ' + getServiceAccountToken(),
@@ -119,12 +119,12 @@ function getCitizenStats(email) {
 
 
 /**
- * Retrieves a list of citizens from the Citizens Google Sheet.
- * @returns {Array<string>} An array containing the names of all citizens found in the Citizens Google Sheet.
+ * Retrieves a list of citizens and their information from the Citizens Google Sheet.
+ * @returns {Array<Object>} An array of objects, each containing the information of a citizen.
  */
-function getCitizens() {
+function getAllCitizens() {
     const sheetName = 'Citizens'; // The name of your sheet
-    const range = 'B3:B'; // Adjust if you need a different column or specific rows
+    const range = 'A2:G'; // Adjust if you need a different column or specific rows
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(sheetName + '!' + range)}`;
     const headers = {
         'Authorization': 'Bearer ' + getServiceAccountToken(), // Assumes getServiceAccountToken() is defined and returns a valid token
@@ -140,8 +140,18 @@ function getCitizens() {
     const values = JSON.parse(response.getContentText()).values;
 
     if (values && values.length > 0) {
-        // Flatten the array of arrays to a single-level array, assuming each sub-array has only one element (the value from column B)
-        const citizens = values.map(row => row[0]);
+        // Map the array of arrays to an array of objects, assuming columns A:G correspond to the citizen's information
+        const citizens = values.map(row => ({
+            name: row[0],
+            email: row[1],
+            plot: row[2],
+            userId: row[3],
+            spaceId: row[4],
+            house: row[5],
+            occupation: row[6],
+            occupationLevel: row[7],
+            gold: row[8],
+        }));
         return citizens;
     } else {
         Logger.log('No data found.');
