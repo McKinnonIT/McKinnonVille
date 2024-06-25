@@ -1,18 +1,23 @@
 /**
- * Sets up an hourly trigger for the 'createScheduledMessageTriggers' function.
- * createScheduledMessageTriggers()
- *   Creates or updates triggers to execute the sendScheduledMessage function on specified dates and times.
- *   The dates and times are fetched from the "Setup" sheet, which should have columns "Week", "Date", "Message Time", and "Message".
+ * Sets up hourly triggers for the specified function names.
+ * 
+ * @param {Array} functionNames - An array of function names to set up hourly triggers for.
  */
-function setupHourlyTrigger() {
+function initHourlyTriggers(functionNames) {
     const existingTriggers = ScriptApp.getProjectTriggers();
-    const triggerExists = existingTriggers.some(trigger => trigger.getHandlerFunction() === 'createScheduledMessageTriggers');
 
-    if (!triggerExists) {
-        const trigger = ScriptApp.newTrigger('createScheduledMessageTriggers')
-            .timeBased()
-            .everyHours(1)
-            .create();
-        console.log(trigger)
-    }
+    functionNames.forEach(functionName => {
+        const triggerExists = existingTriggers.some(trigger => trigger.getHandlerFunction() === functionName);
+
+        if (!triggerExists) {
+            const trigger = ScriptApp.newTrigger(functionName)
+                .timeBased()
+                .everyHours(1)
+                .create();
+            console.log(`Created trigger for ${functionName}:`, trigger);
+        }
+    });
 }
+
+const functionNames = ['createScheduledMessageTriggers', 'createScheduledQuizTriggers'];
+initHourlyTriggers(functionNames);

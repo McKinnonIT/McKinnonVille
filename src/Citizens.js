@@ -1,6 +1,8 @@
 /**
  * Class representing a citizen with the capability to automatically fetch or create their profile.
  */
+const MAX_OCCUPATION_LEVEL = 6;
+
 class Citizen {
     /**
      * Constructs a Citizen instance, fetching their stats or creating a new profile if not found.
@@ -22,8 +24,8 @@ class Citizen {
                         plot: "Default Plot",
                         house: "Default House",
                         gold: 0,
-                        plotLevel: 1,
                         occupation: "Teacher",
+                        occupationLevel: 1,
                         userId: "default/userId",
                         spaceId: "default/spaceId",
                         ...stats // Merge stats if provided
@@ -49,6 +51,48 @@ class Citizen {
 
     exists() {
         return Object.keys(this).length > 0;
+    }
+
+    /**
+     * Increments the citizen's occupation level by 1 and updates the Citizens spreadsheet.
+     * Ensures the occupation level does not exceed the maximum level.
+     */
+    levelUp() {
+        if (this.occupationLevel < MAX_OCCUPATION_LEVEL) {
+            this.occupationLevel = parseInt(this.occupationLevel) + 1;
+            updateCitizenOccupationLevel(this.email, this.occupationLevel);
+
+            // Send a congratulatory message
+            let message;
+            if (this.occupationLevel === MAX_OCCUPATION_LEVEL) {
+                message = `🎉 Congratulations! You have reached the maximum level ${this.occupationLevel} in your occupation as a ${this.occupation}.`;
+            } else {
+                message = `Congratulations! You have leveled up to level ${this.occupationLevel} in your occupation as a ${this.occupation}.`;
+            }
+            sendMessage(message, this.spaceId);
+        } else {
+            // Send a message indicating the citizen has reached the maximum level
+            const message = `You have already reached the maximum occupation level of ${MAX_OCCUPATION_LEVEL}. Keep up the great work as a ${this.occupation}!`;
+            sendMessage(message, this.spaceId);
+            Logger.log(`Citizen ${this.email} has reached the maximum occupation level of ${MAX_OCCUPATION_LEVEL}.`);
+        }
+    }
+
+    /**
+     * Updates the quiz attempts for the citizen.
+     * @param {string} week - The week identifier for the quiz attempts.
+     * @param {number} attempts - The number of attempts to set.
+     */
+    incrementQuizAttempts() {
+        this.week = getWeek()
+        incrementQuizAttempts(this.email, this.week);
+    }
+    /**
+     * Gets the citizens current week quiz attempts
+     */
+    getQuizAttempts() {
+        this.week = getWeek()
+        return getQuizAttempts(this.email, this.week);
     }
 }
 
@@ -83,8 +127,8 @@ function mapCitizenData(citizen) {
  */
 function createNewCitizen(citizen) {
     // Extracting properties from the citizen object
-    const { name, email, plot, userId, spaceId, house, gold, plotLevel, occupation } = citizen;
-    addNewCitizenRow(name, email, plot, userId, spaceId, house, gold, plotLevel, occupation);
+    const { name, email, plot, userId, spaceId, house, gold, occupationLevel, occupation } = citizen;
+    addNewCitizenRow(name, email, plot, userId, spaceId, house, gold, occupationLevel, occupation);
 }
 
 
@@ -95,7 +139,7 @@ function createNewCitizen(citizen) {
  */
 function getCitizenStats(email) {
     const sheetName = 'Citizens';
-    const range = 'A2:V';
+    const range = 'A2:W';
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(sheetName + '!' + range)}`;
     const headers = {
         'Authorization': 'Bearer ' + getServiceAccountToken(),
@@ -235,6 +279,3 @@ function sendCitizenStatsMessage(name, house, plot, occupation, occupationLevel,
         ]
     }
 }
-
-
-

@@ -1,4 +1,4 @@
 function testTesting() {
-    const week = getWeek("01/01/2022")
-    Logger.log(week)
+    const citizen = new Citizen("sam.neal@mckinnonsc.vic.edu.au");
+    citizen.incrementQuizAttempts();
 }

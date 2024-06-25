@@ -1,8 +1,15 @@
-function testF() {
-    var q = getQuizQuestions("Law", 1)
-    var qs = generateQuizQuestionsWidgets(q)
-    Logger.log(qs)
-}
+const QUIZ_MAX_ATTEMPTS = 1;
+const QUIZ_ATTEMPTS_COLUMN_MAP = {
+    1: "X",
+    2: "Y",
+    3: "Z",
+    4: "AA",
+    5: "AB",
+    6: "AC",
+    7: "AD",
+    8: "AE",
+    9: "AF",
+};
 
 function getSubjectsForOccupation(occupation) {
     const occupationsSheetName = 'Occupations';
@@ -225,17 +232,27 @@ function evaluateSubmittedAnswers(submittedAnswers) {
     const options = {
         method: 'get',
         headers: headers,
-        muteHttpExceptions: true,
+        muteHttpExceptions: false,
     };
 
-    const response = UrlFetchApp.fetch(url, options);
-    const { values } = JSON.parse(response.getContentText());
+    let values;
+    try {
+        const response = UrlFetchApp.fetch(url, options);
+        values = JSON.parse(response.getContentText()).values;
+    } catch (error) {
+        Logger.log('Error fetching or parsing quiz data: ' + error);
+        return {
+            correctAnswers: { count: 0, questionIds: [] },
+            incorrectAnswers: { count: 0, questionIds: [] },
+        };
+    }
 
     let correctCount = 0;
     const correctQuestions = [];
     const incorrectQuestions = [];
 
-    Object.entries(submittedAnswers).forEach(([questionId, { "": { stringInputs: { value: [submittedAnswerId] } } }]) => {
+    Object.entries(submittedAnswers).forEach(([questionId, answerDetails]) => {
+        const submittedAnswerId = answerDetails[""].stringInputs.value[0];
         const questionRow = values.find(row => row[0] === questionId);
         if (questionRow && questionRow[8] === submittedAnswerId) { // Assuming answer keys are in column I (index 8)
             correctCount++;
@@ -255,4 +272,70 @@ function evaluateSubmittedAnswers(submittedAnswers) {
             questionIds: incorrectQuestions,
         },
     };
+}
+
+function getQuizAttempts(email, week) {
+    const column = QUIZ_ATTEMPTS_COLUMN_MAP[week];
+    const sheetName = 'Citizens';
+    const range = `${sheetName}!A2:${column}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(range)}`;
+    const headers = {
+        'Authorization': 'Bearer ' + getServiceAccountToken(),
+        'Content-Type': 'application/json',
+    };
+    const options = { method: 'get', headers: headers, muteHttpExceptions: true };
+    const response = UrlFetchApp.fetch(url, options);
+    const values = JSON.parse(response.getContentText()).values || [];
+
+    const citizenRow = values.find(row => row[1] === email);
+    if (!citizenRow) {
+        return 0;
+    }
+
+    const attempts = parseInt(citizenRow[citizenRow.length - 1], 10);
+    return isNaN(attempts) ? 0 : attempts;
+}
+
+function getNextWeekStartDate(currentWeek) {
+    const weekStartDates = getWeekStartDates();
+    const nextWeek = weekStartDates.find(weekData => weekData.week === currentWeek + 1);
+    return nextWeek ? nextWeek.date : 'N/A';
+}
+
+function incrementQuizAttempts(email, week) {
+    const column = QUIZ_ATTEMPTS_COLUMN_MAP[week];
+    const sheetName = 'Citizens';
+    const range = `${sheetName}!A2:${column}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(range)}`;
+    const headers = {
+        'Authorization': 'Bearer ' + getServiceAccountToken(),
+        'Content-Type': 'application/json',
+    };
+    const options = { method: 'get', headers: headers, muteHttpExceptions: false };
+    const response = UrlFetchApp.fetch(url, options);
+    const values = JSON.parse(response.getContentText()).values || [];
+
+    const citizenIndex = values.findIndex(row => row[1] === email);
+    if (citizenIndex === -1) {
+        Logger.log('Citizen not found.');
+        return;
+    }
+
+    const rowIndex = citizenIndex + 2; // Adjust for header row and 0-based index
+    const currentAttempts = parseInt(values[citizenIndex][values[citizenIndex].length - 1], 10) || 0;
+    const newAttempts = currentAttempts + 1;
+
+    const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${sheetName}!${column}${rowIndex}?valueInputOption=USER_ENTERED`;
+    const updateOptions = {
+        method: 'put',
+        headers: headers,
+        muteHttpExceptions: true,
+        payload: JSON.stringify({
+            range: `${sheetName}!${column}${rowIndex}`,
+            majorDimension: 'ROWS',
+            values: [[newAttempts]]
+        })
+    };
+
+    UrlFetchApp.fetch(updateUrl, updateOptions);
 }

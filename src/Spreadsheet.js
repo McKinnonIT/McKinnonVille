@@ -9,11 +9,11 @@
  * @param {string} spaceId - The space ID of the Google Chat.
  * @param {string} house - The house to which the citizen belongs.
  * @param {number} currentGold - The initial amount of gold the citizen has.
- * @param {number} currentPlotLevel - The initial level of the citizen's plot.
+ * @param {number} currentOccupationLevel - The initial level of the citizen's plot.
  * @param {string} currentOccupation - The occupation of the citizen.
  * @returns {object} The response from the Google Sheets API after appending the row.
  */
-function addNewCitizenRow(name, email, plot, userId, spaceId, house, currentGold, currentPlotLevel, currentOccupation) {
+function addNewCitizenRow(name, email, plot, userId, spaceId, house, currentGold, currentOccupationLevel, currentOccupation) {
     const sheetName = 'Citizens';
     // Adjust the range to include all columns from A to W
     const range = `${sheetName}!A:W`;
@@ -125,4 +125,43 @@ function getUserHouse(email) {
         throw new HouseNotFound(`No house found for email: ${email}`);
     }
     return house
+}
+
+function updateCitizenOccupationLevel(email, newLevel) {
+    const sheetName = 'Citizens';
+    const range = 'A2:H'; // Adjust the range to include the occupation level column
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(sheetName + '!' + range)}`;
+    const headers = {
+        'Authorization': 'Bearer ' + getServiceAccountToken(),
+        'Content-Type': 'application/json',
+    };
+    const options = { method: 'get', headers: headers, muteHttpExceptions: true };
+    const response = UrlFetchApp.fetch(url, options);
+    const values = JSON.parse(response.getContentText()).values || [];
+
+    if (values.length === 0) {
+        Logger.log('No data found.');
+        return;
+    }
+
+    const citizenIndex = values.findIndex(row => row[1] === email);
+    if (citizenIndex === -1) {
+        Logger.log('Citizen not found.');
+        return;
+    }
+
+    const rowIndex = citizenIndex + 2; // Adjust for header row and 0-based index
+    const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${sheetName}!H${rowIndex}?valueInputOption=USER_ENTERED`;
+    const updateOptions = {
+        method: 'put',
+        headers: headers,
+        muteHttpExceptions: true,
+        payload: JSON.stringify({
+            range: `${sheetName}!H${rowIndex}`,
+            majorDimension: 'ROWS',
+            values: [[newLevel]]
+        })
+    };
+
+    UrlFetchApp.fetch(updateUrl, updateOptions);
 }

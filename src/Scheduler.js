@@ -3,29 +3,49 @@
  */
 function sendScheduledQuiz() {
     const citizens = getAllCitizens();
-    const week = getWeek();
-
-    const card = {
-        "cards": [{
-            "header": {
-                "title": `Week ${week} quiz`,
-                "imageUrl": "https://www.gstatic.com/images/icons/material/system/2x/shopping_bag_gm_blue_48dp.png",
-                "imageStyle": "IMAGE"
-            },
-            "sections": [{
-                "widgets": [{
-                    "textParagraph": {
-                        "text": `Your week ${week} quiz is now open. Use the /quiz command to get started.`,
-                    }
-                },
-                ]
-            }]
-        }]
-    };
 
     citizens.forEach(citizen => {
-        console.log(`Sending quiz to ${citizen.name} at ${citizen.spaceId}`);
-        sendRawMessage(card, citizen.spaceId);
+        const message = "Your quiz is now ready to be completed. Use the /quiz command to attempt a level up!";
+        sendMessage(message, citizen.spaceId);
+    });
+}
+
+/**
+ * Creates or updates triggers to execute the specified function on specified dates and times.
+ * The dates and times are fetched from the "Setup" sheet, which should have columns "Week", "Date", "Message Time", and "Message".
+ * 
+ * @param {string} functionName - The name of the function to trigger.
+ * @param {function} getDatesWithTimes - The function to fetch the dates and times.
+ */
+function createScheduledTriggers(functionName, getDatesWithTimes) {
+    const weekStartDates = getDatesWithTimes();
+    const existingTriggers = ScriptApp.getProjectTriggers();
+
+    // Delete all existing triggers for the specified function
+    existingTriggers.forEach(trigger => {
+        if (trigger.getHandlerFunction() === functionName) {
+            ScriptApp.deleteTrigger(trigger);
+        }
+    });
+
+    // Create new triggers based on weekStartDates
+    weekStartDates.forEach(weekData => {
+        const { date, time } = weekData;
+        const [hours, minutes] = time.split(':').map(Number);
+        const [day, month, year] = date.split('/').map(Number);
+
+        const triggerDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+
+        if (triggerDate > new Date()) {
+            ScriptApp.newTrigger(functionName)
+                .timeBased()
+                .at(triggerDate)
+                .create();
+
+            console.log(`Created trigger for ${functionName} at ${triggerDate}`);
+        } else {
+            console.log(`Skipped creating trigger for ${functionName} at ${triggerDate} as it is in the past`);
+        }
     });
 }
 
@@ -34,32 +54,7 @@ function sendScheduledQuiz() {
  * The dates and times are fetched from the "Setup" sheet, which should have columns "Week", "Date", "Message Time", and "Message".
  */
 function createScheduledQuizTriggers() {
-    const weekStartDates = getQuizStartDatesWithTimes();
-    const existingTriggers = ScriptApp.getProjectTriggers();
-
-    // Delete all existing sendScheduledMessage triggers
-    existingTriggers.forEach(trigger => {
-        if (trigger.getHandlerFunction() === 'sendScheduledQuiz') {
-            ScriptApp.deleteTrigger(trigger);
-        }
-    });
-
-    // Create new triggers based on weekStartDates
-    weekStartDates.forEach(weekData => {
-        const { date, time } = weekData;
-        const [hours, minutes] = time.split(':').map(Number);
-        const [day, month, year] = date.split('/').map(Number);
-
-
-        const triggerDate = new Date(year, month - 1, day, hours, minutes, 0, 0)
-
-        ScriptApp.newTrigger('sendScheduledQuiz')
-            .timeBased()
-            .at(triggerDate)
-            .create();
-
-        console.log(`Created quiz trigger for ${triggerDate}`);
-    });
+    createScheduledTriggers('sendScheduledQuiz', getQuizStartDatesWithTimes);
 }
 
 /**
@@ -67,34 +62,8 @@ function createScheduledQuizTriggers() {
  * The dates and times are fetched from the "Setup" sheet, which should have columns "Week", "Date", "Message Time", and "Message".
  */
 function createScheduledMessageTriggers() {
-    const weekStartDates = getWeekStartDatesWithTimes();
-    const existingTriggers = ScriptApp.getProjectTriggers();
-
-    // Delete all existing sendScheduledMessage triggers
-    existingTriggers.forEach(trigger => {
-        if (trigger.getHandlerFunction() === 'sendScheduledMessage') {
-            ScriptApp.deleteTrigger(trigger);
-        }
-    });
-
-    // Create new triggers based on weekStartDates
-    weekStartDates.forEach(weekData => {
-        const { date, time } = weekData;
-        const [hours, minutes] = time.split(':').map(Number);
-        const [day, month, year] = date.split('/').map(Number);
-
-
-        const triggerDate = new Date(year, month - 1, day, hours, minutes, 0, 0)
-
-        ScriptApp.newTrigger('sendScheduledMessage')
-            .timeBased()
-            .at(triggerDate)
-            .create();
-
-        console.log(`Created Week trigger for ${triggerDate}`);
-    });
+    createScheduledTriggers('sendScheduledMessage', getWeekStartDatesWithTimes);
 }
-
 
 
 /**

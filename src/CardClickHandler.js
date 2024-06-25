@@ -4,7 +4,7 @@ const commandHandlers = {
     'submitAnswer': handleSubmitAnswer,
     'handleSendOccupationDialog': handleSendOccupationDialog,
     'handleQuizSubmission': handleQuizSubmission,
-    'handleOccupationSelection': handleOccupationSelection
+    'handleOccupationSelection': handleOccupationSelection,
 };
 
 /**
@@ -17,13 +17,6 @@ async function onCardClick(event) {
     } else {
         return console.error("Unhandled function: " + event.common.invokedFunction);
     }
-}
-
-async function handleSendQuiz(event) {
-    Logger.info(event)
-    Logger.log(event)
-    console.log("HELLO WORLD SENDING QUIZ")
-    // return sendQuiz()
 }
 
 async function handleSignUp(event) {
@@ -41,12 +34,28 @@ async function handleSendOccupationDialog(event) {
 
 async function handleQuizSubmission(event) {
     const quizResults = evaluateSubmittedAnswers(event.common.formInputs);
+    const totalQuestions = Object.keys(event.common.formInputs).length;
+    const correctAnswers = quizResults.correctAnswers.count;
+
+    const citizen = new Citizen(event.user.email);
+    citizen.incrementQuizAttempts();
+
+    let remainingAttempts = Math.max(0, QUIZ_MAX_ATTEMPTS - citizen.getQuizAttempts());
+
+    let message;
+    if (correctAnswers === totalQuestions) {
+        message = `You answered all ${totalQuestions} questions correctly!`;
+        citizen.levelUp();
+    } else {
+        message = `You answered ${correctAnswers} out of ${totalQuestions} questions correctly.`;
+    }
+
     return {
         "action_response": {
             "type": "NEW_MESSAGE",
         },
-        "text": `You got ${quizResults.correctAnswers.count} out of ${Object.keys(event.common.formInputs).length} questions correct!`
-    }
+        "text": correctAnswers === totalQuestions ? message : `${message} You have ${remainingAttempts} attempts left for this week.`
+    };
 }
 
 async function handleOccupationSelection(event) {
@@ -58,7 +67,7 @@ async function handleOccupationSelection(event) {
     } catch (error) {
         let userMessage;
         if (error instanceof HouseNotFound) {
-            userMessage = `🥺 Sorry ${event.user.displayName.match(/^\S+/)[0]}, it looks like I can't find which house you're in. Send an email to help@mckinnonsc.vic.edu.au and we'll get this sorted for yo.`
+            userMessage = `🥺 Sorry ${event.user.displayName.match(/^\S+/)[0]}, it looks like I can't find which house you're in.Send an email to help @mckinnonsc.vic.edu.au and we'll get this sorted for yo.`
         }
         return logErrorAndRespond(error, userMessage || "Error in handleOccupationSelection");
     }
