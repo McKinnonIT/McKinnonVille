@@ -7,7 +7,7 @@ async function simulateAllocateAllPlots() {
     var availablePlots = getAvailablePlots(house);
 
     // Map availablePlots to an array of Promises for concurrent processing
-    var allocationPromises = availablePlots.map(plot => allocatePlot(plot));
+    var allocationPromises = availablePlots.map(plot => allocatePlot(plot, getImageUrlForSalary(0)));
 
     // Wait for all allocation Promises to resolve
     await Promise.all(allocationPromises);
@@ -78,32 +78,33 @@ function getAvailablePlots(house) {
 }
 
 /**
- * Allocates a specific plot by updating its content with a new image formula.
- * This operation is performed as an asynchronous HTTP PUT request to the Google Sheets API.
- * 
- * @param {string} cellReference - The cell reference (e.g., "A1") of the plot to be allocated.
- * @returns {Promise} A Promise that resolves to the HTTP response of the operation.
- */
-async function allocatePlot(cellReference) {
-    var sheetName = 'Map';
-    var range = `${sheetName}!${cellReference}`; // Specific cell to update
-    var url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_MAP}/values/${range}?valueInputOption=USER_ENTERED`;
-    var headers = {
+* Allocates a specific plot by updating its content with a new image formula.
+* This operation is performed as an asynchronous HTTP PUT request to the Google Sheets API.
+* 
+* @param { string } cellReference - The cell reference(e.g., "A1") of the plot to be allocated.
+* @param { string } imageUrl - The URL of the image to be used in the plot.
+* @returns { Promise } A Promise that resolves to the HTTP response of the operation.
+*/
+async function allocatePlot(cellReference, imageUrl) {
+    const sheetName = 'Map';
+    const range = `${sheetName}!${cellReference}`; // Specific cell to update
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_MAP}/values/${range}?valueInputOption=USER_ENTERED`;
+    const headers = {
         'Authorization': 'Bearer ' + getServiceAccountToken(),
         'Content-Type': 'application/json',
     };
-    var payload = JSON.stringify({
+    const payload = JSON.stringify({
         values: [
-            ['=IMAGE("https://raw.githubusercontent.com/McKinnonIT/McKinnonVille/main/assets/img/Tent.png")'] // Update cell with this formula
+            [`=IMAGE("${imageUrl}")`] // Update cell with this formula
         ],
     });
-    var options = {
+    const options = {
         method: 'put',
         headers: headers,
         payload: payload,
         muteHttpExceptions: true,
     };
 
-    var response = await UrlFetchApp.fetch(url, options); // Await the fetch operation
+    const response = await UrlFetchApp.fetch(url, options); // Await the fetch operation
     return response;
 }

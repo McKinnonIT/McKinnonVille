@@ -27,7 +27,7 @@ function addNewCitizenRow(name, email, plot, userId, spaceId, house, currentGold
     const OCCUPATION_LEVELS_RANGE = "K2:W2";
 
     // The formula for currentOccupationLevel
-    const annualSalaryFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:O"), IF(INDIRECT("H" & ROW())=1, 10, IF(INDIRECT("H" & ROW())=2, 11, IF(INDIRECT("H" & ROW())=3, 12, IF(INDIRECT("H" & ROW())=4, 13, IF(INDIRECT("H" & ROW())=5, 14, 1))))), FALSE)`
+    const annualSalaryFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:P"), IF(INDIRECT("H" & ROW())=1, 10, IF(INDIRECT("H" & ROW())=2, 11, IF(INDIRECT("H" & ROW())=3, 12, IF(INDIRECT("H" & ROW())=4, 13, IF(INDIRECT("H" & ROW())=5, 14, IF(INDIRECT("H" & ROW())=6, 15, NA())))))), FALSE)`
     const villageTaxRateFormula = `=VLOOKUP(INDIRECT("F" & ROW()), INDIRECT("Villages!A:O"), 15, FALSE)`
     const salaryPostTaxFormula = `=INDIRECT("I" & ROW()) - (INDIRECT("I" & ROW()) * INDIRECT("J" & ROW()))`
     const educationContributionFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:G"), 4, FALSE) * INDIRECT("H" & ROW())`
@@ -78,6 +78,51 @@ function addNewCitizenRow(name, email, plot, userId, spaceId, house, currentGold
     };
 
     return UrlFetchApp.fetch(url, options);
+}
+
+/**
+ * Retrieves the image URL for a given salary from the "Setup" sheet.
+ * The "Setup" sheet should have columns "Salary less than" and "Image URL" in the range B44:D51.
+ * 
+ * @param {number} salary - The salary to find the image URL for.
+ * @returns {string} The image URL corresponding to the given salary.
+ */
+function getImageUrlForSalary(salary) {
+    const setupSheetName = 'Setup';
+    const range = 'B44:D51';
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${setupSheetName}!${range}`;
+    const headers = {
+        'Authorization': 'Bearer ' + getServiceAccountToken(),
+        'Content-Type': 'application/json',
+    };
+
+    const options = {
+        method: 'get',
+        headers: headers,
+        muteHttpExceptions: true,
+    };
+
+    const response = UrlFetchApp.fetch(url, options);
+    const data = JSON.parse(response.getContentText());
+    const salaryData = data.values;
+
+    if (!salaryData || salaryData.length === 0) {
+        Logger.log('No salary data found.');
+        return '';
+    }
+
+    // Find the appropriate image URL based on the given salary
+    for (let i = 0; i < salaryData.length; i++) {
+        const salaryThreshold = parseFloat(salaryData[i][0]);
+        const imageUrl = salaryData[i][1];
+
+        if (salary < salaryThreshold) {
+            return imageUrl;
+        }
+    }
+
+    // If no threshold is found, return an empty string or a default image URL
+    return '';
 }
 
 /**

@@ -54,13 +54,20 @@ class Citizen {
     }
 
     /**
-     * Increments the citizen's occupation level by 1 and updates the Citizens spreadsheet.
-     * Ensures the occupation level does not exceed the maximum level.
-     */
+        * Increments the citizen's occupation level by 1 and updates the Citizens spreadsheet.
+        * Ensures the occupation level does not exceed the maximum level.
+        */
     levelUp() {
         if (this.occupationLevel < MAX_OCCUPATION_LEVEL) {
             this.occupationLevel = parseInt(this.occupationLevel) + 1;
             updateCitizenOccupationLevel(this.email, this.occupationLevel);
+
+            // Get the plot image URL based on the citizen's gold
+            const plotImageUrl = getImageUrlForSalary(this.gold);
+
+            // Update the plot with the new image URL
+            const plotCellReference = this.plot;
+            allocatePlot(plotCellReference, plotImageUrl);
 
             // Send a congratulatory message
             let message;
@@ -72,12 +79,11 @@ class Citizen {
             sendMessage(message, this.spaceId);
         } else {
             // Send a message indicating the citizen has reached the maximum level
-            const message = `You have already reached the maximum occupation level of ${MAX_OCCUPATION_LEVEL}. Keep up the great work as a ${this.occupation}!`;
+            const message = `You have already reached the maximum occupation level of ${MAX_OCCUPATION_LEVEL}.`;
             sendMessage(message, this.spaceId);
             Logger.log(`Citizen ${this.email} has reached the maximum occupation level of ${MAX_OCCUPATION_LEVEL}.`);
         }
     }
-
     /**
      * Updates the quiz attempts for the citizen.
      * @param {string} week - The week identifier for the quiz attempts.
