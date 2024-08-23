@@ -9,11 +9,11 @@
  * @param {string} spaceId - The space ID of the Google Chat.
  * @param {string} house - The house to which the citizen belongs.
  * @param {number} currentGold - The initial amount of gold the citizen has.
- * @param {number} currentPlotLevel - The initial level of the citizen's plot.
+ * @param {number} currentOccupationLevel - The initial level of the citizen's plot.
  * @param {string} currentOccupation - The occupation of the citizen.
  * @returns {object} The response from the Google Sheets API after appending the row.
  */
-function addNewCitizenRow(name, email, plot, userId, spaceId, house, currentGold, currentPlotLevel, currentOccupation) {
+function addNewCitizenRow(name, email, plot, userId, spaceId, house, currentGold, currentOccupationLevel, currentOccupation) {
     const sheetName = 'Citizens';
     // Adjust the range to include all columns from A to W
     const range = `${sheetName}!A:W`;
@@ -27,16 +27,46 @@ function addNewCitizenRow(name, email, plot, userId, spaceId, house, currentGold
     const OCCUPATION_LEVELS_RANGE = "K2:W2";
 
     // The formula for currentOccupationLevel
-    const currentOccupationLevelFormula = `=INDEX(INDIRECT("K"&ROW()&":W"&ROW()), MATCH(INDIRECT("J"&ROW()), INDIRECT("${OCCUPATION_LEVELS_RANGE}"), 0))`;
-
-    // Create an array filled with the number 1 for columns K to W
-    // There are 13 columns from K to W (inclusive), so we create an array of 13 ones.
-    const initialOccupationLevels = new Array(13).fill(1);
+    const annualSalaryFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:P"), IF(INDIRECT("H" & ROW())=1, 10, IF(INDIRECT("H" & ROW())=2, 11, IF(INDIRECT("H" & ROW())=3, 12, IF(INDIRECT("H" & ROW())=4, 13, IF(INDIRECT("H" & ROW())=5, 14, IF(INDIRECT("H" & ROW())=6, 15, NA())))))), FALSE)`
+    const villageTaxRateFormula = `=VLOOKUP(INDIRECT("F" & ROW()), INDIRECT("Villages!A:O"), 15, FALSE)`
+    const salaryPostTaxFormula = `=INDIRECT("I" & ROW()) - (INDIRECT("I" & ROW()) * INDIRECT("J" & ROW()))`
+    const educationContributionFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:G"), 4, FALSE) * INDIRECT("H" & ROW())`
+    const healthContributionFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:G"), 5, FALSE) * INDIRECT("H" & ROW())`
+    const happinessContributionFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:G"), 6, FALSE) * INDIRECT("H" & ROW())`
 
     // Combine the provided values with the additional ones for columns K to W,
     const payload = JSON.stringify({
         values: [
-            [name, email, plot, userId, spaceId, house, currentGold, currentPlotLevel, currentOccupationLevelFormula, currentOccupation, ...initialOccupationLevels],
+            [
+                // Name
+                name,
+                // Email
+                email,
+                // Plot
+                plot,
+                // User ID
+                userId,
+                // Space ID
+                spaceId,
+                // House / Village
+                house,
+                // Occupation
+                currentOccupation,
+                // Occupation Level
+                1,
+                // Annual Salary (Gold pretax)
+                annualSalaryFormula,
+                // Village Tax Rate
+                villageTaxRateFormula,
+                // Salary (Post Tax)
+                salaryPostTaxFormula,
+                // Education Contribution
+                educationContributionFormula,
+                // Health Contribution
+                healthContributionFormula,
+                // Happiness Contribtion
+                happinessContributionFormula
+            ]
         ],
     });
 
@@ -48,6 +78,51 @@ function addNewCitizenRow(name, email, plot, userId, spaceId, house, currentGold
     };
 
     return UrlFetchApp.fetch(url, options);
+}
+
+/**
+ * Retrieves the image URL for a given salary from the "Setup" sheet.
+ * The "Setup" sheet should have columns "Salary less than" and "Image URL" in the range B44:D51.
+ * 
+ * @param {number} salary - The salary to find the image URL for.
+ * @returns {string} The image URL corresponding to the given salary.
+ */
+function getImageUrlForSalary(salary) {
+    const setupSheetName = 'Setup';
+    const range = 'B44:D51';
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${setupSheetName}!${range}`;
+    const headers = {
+        'Authorization': 'Bearer ' + getServiceAccountToken(),
+        'Content-Type': 'application/json',
+    };
+
+    const options = {
+        method: 'get',
+        headers: headers,
+        muteHttpExceptions: true,
+    };
+
+    const response = UrlFetchApp.fetch(url, options);
+    const data = JSON.parse(response.getContentText());
+    const salaryData = data.values;
+
+    if (!salaryData || salaryData.length === 0) {
+        Logger.log('No salary data found.');
+        return '';
+    }
+
+    // Find the appropriate image URL based on the given salary
+    for (let i = 0; i < salaryData.length; i++) {
+        const salaryThreshold = parseFloat(salaryData[i][0]);
+        const imageUrl = salaryData[i][1];
+
+        if (salary < salaryThreshold) {
+            return imageUrl;
+        }
+    }
+
+    // If no threshold is found, return an empty string or a default image URL
+    return '';
 }
 
 /**
@@ -95,4 +170,43 @@ function getUserHouse(email) {
         throw new HouseNotFound(`No house found for email: ${email}`);
     }
     return house
+}
+
+function updateCitizenOccupationLevel(email, newLevel) {
+    const sheetName = 'Citizens';
+    const range = 'A2:H'; // Adjust the range to include the occupation level column
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(sheetName + '!' + range)}`;
+    const headers = {
+        'Authorization': 'Bearer ' + getServiceAccountToken(),
+        'Content-Type': 'application/json',
+    };
+    const options = { method: 'get', headers: headers, muteHttpExceptions: true };
+    const response = UrlFetchApp.fetch(url, options);
+    const values = JSON.parse(response.getContentText()).values || [];
+
+    if (values.length === 0) {
+        Logger.log('No data found.');
+        return;
+    }
+
+    const citizenIndex = values.findIndex(row => row[1] === email);
+    if (citizenIndex === -1) {
+        Logger.log('Citizen not found.');
+        return;
+    }
+
+    const rowIndex = citizenIndex + 2; // Adjust for header row and 0-based index
+    const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${sheetName}!H${rowIndex}?valueInputOption=USER_ENTERED`;
+    const updateOptions = {
+        method: 'put',
+        headers: headers,
+        muteHttpExceptions: true,
+        payload: JSON.stringify({
+            range: `${sheetName}!H${rowIndex}`,
+            majorDimension: 'ROWS',
+            values: [[newLevel]]
+        })
+    };
+
+    UrlFetchApp.fetch(updateUrl, updateOptions);
 }

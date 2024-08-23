@@ -1,8 +1,46 @@
-function testF() {
-    var q = getQuizQuestions("Law", 1)
-    var qs = generateQuizQuestionsWidgets(q)
-    Logger.log(qs)
+const QUIZ_MAX_ATTEMPTS = 1;
+const QUIZ_ATTEMPTS_COLUMN_MAP = {
+    1: "X",
+    2: "Y",
+    3: "Z",
+    4: "AA",
+    5: "AB",
+    6: "AC",
+    7: "AD",
+    8: "AE",
+    9: "AF",
+};
+
+function getSubjectsForOccupation(occupation) {
+    const occupationsSheetName = 'Occupations';
+    const range = encodeURIComponent(`${occupationsSheetName}!B:D`);
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${range}`;
+
+    const headers = {
+        'Authorization': 'Bearer ' + getServiceAccountToken(),
+        'Content-Type': 'application/json',
+    };
+
+    const options = {
+        method: 'get',
+        headers: headers,
+        muteHttpExceptions: true,
+    };
+
+    const response = UrlFetchApp.fetch(url, options);
+    const result = JSON.parse(response.getContentText());
+    const values = result.values;
+
+    if (!values || values.length === 0) {
+        Logger.log('No subjects data found.');
+        return [];
+    }
+
+    // Filter rows by occupation and extract the subjects
+    const subjectsRow = values.filter(row => row[0].toLowerCase() === occupation.toLowerCase());
+    return subjectsRow.length > 0 ? subjectsRow[0][2].split(',').map(subject => subject.trim()) : [];
 }
+
 
 /**
  * Retrieves a specified number of quiz questions filtered by occupation and level from a Google Sheet.
@@ -17,8 +55,14 @@ function testF() {
  * @return {Array<Object>} An array of question objects, each containing the question, options, and answer key.
 */
 function getQuizQuestions(occupation, level, numQuestions = 5) {
-    const sheetName = 'Test Questions'; // Update this to your actual sheet name
-    const range = encodeURIComponent(`${sheetName}!A2:H`); // Adjust range as necessary
+    const subjects = getSubjectsForOccupation(occupation);
+    if (subjects.length === 0) {
+        Logger.log('No subjects found for the given occupation.');
+        return [];
+    }
+
+    const questionsSheetName = 'Test Questions'; // Update this to your actual sheet name for questions
+    const range = encodeURIComponent(`${questionsSheetName}!A2:H`);
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${range}`;
 
     const headers = {
@@ -32,19 +76,19 @@ function getQuizQuestions(occupation, level, numQuestions = 5) {
         muteHttpExceptions: true,
     };
 
-    // Fetching the data from the sheet
     const response = UrlFetchApp.fetch(url, options);
     const result = JSON.parse(response.getContentText());
     const values = result.values;
 
-    // Check if we have received any data
     if (!values || values.length === 0) {
-        Logger.log('No data found.');
+        Logger.log('No quiz data found.');
         return [];
     }
 
-    // Filter and map the questions based on occupation and level
-    const filteredQuestions = values.filter(row => row[1] === occupation && row[2] == level).map(row => ({
+    // Filter questions based on matching any subject and the level
+    const filteredQuestions = values.filter(row =>
+        subjects.includes(row[1]) && row[2] == level
+    ).map(row => ({
         id: row[0],
         question: row[3],
         options: [row[4], row[5], row[6], row[7]],
@@ -74,7 +118,7 @@ function generateQuizQuestionsWidgets(questions) {
             items: question.options.map((option, optionIndex) => ({
                 text: `${option}`,
                 value: (optionIndex + 1).toString(),
-                selected: true
+                selected: false
             }))
         }
     }));
@@ -92,6 +136,34 @@ function generateQuizQuestionsWidgets(questions) {
  */
 function sendQuiz(occupation, level) {
     var questions = getQuizQuestions(occupation, level)
+
+    if (questions.length === 0) {
+        return {
+            "action_response": {
+                "type": "DIALOG",
+                "dialog_action": {
+                    "dialog": {
+                        "body": {
+                            "sections": [
+                                {
+                                    "header": "",
+                                    "collapsible": false,
+                                    "uncollapsibleWidgetsCount": 1,
+                                    "widgets": [
+                                        {
+                                            "textParagraph": {
+                                                "text": "No quiz questions found for the specified occupation and level. Please email help@mckinnonsc.vic.edu.au"
+                                            }
+                                        },
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+    }
 
     return {
         "action_response": {
@@ -160,17 +232,27 @@ function evaluateSubmittedAnswers(submittedAnswers) {
     const options = {
         method: 'get',
         headers: headers,
-        muteHttpExceptions: true,
+        muteHttpExceptions: false,
     };
 
-    const response = UrlFetchApp.fetch(url, options);
-    const { values } = JSON.parse(response.getContentText());
+    let values;
+    try {
+        const response = UrlFetchApp.fetch(url, options);
+        values = JSON.parse(response.getContentText()).values;
+    } catch (error) {
+        Logger.log('Error fetching or parsing quiz data: ' + error);
+        return {
+            correctAnswers: { count: 0, questionIds: [] },
+            incorrectAnswers: { count: 0, questionIds: [] },
+        };
+    }
 
     let correctCount = 0;
     const correctQuestions = [];
     const incorrectQuestions = [];
 
-    Object.entries(submittedAnswers).forEach(([questionId, { "": { stringInputs: { value: [submittedAnswerId] } } }]) => {
+    Object.entries(submittedAnswers).forEach(([questionId, answerDetails]) => {
+        const submittedAnswerId = answerDetails[""].stringInputs.value[0];
         const questionRow = values.find(row => row[0] === questionId);
         if (questionRow && questionRow[8] === submittedAnswerId) { // Assuming answer keys are in column I (index 8)
             correctCount++;
@@ -190,4 +272,70 @@ function evaluateSubmittedAnswers(submittedAnswers) {
             questionIds: incorrectQuestions,
         },
     };
+}
+
+function getQuizAttempts(email, week) {
+    const column = QUIZ_ATTEMPTS_COLUMN_MAP[week];
+    const sheetName = 'Citizens';
+    const range = `${sheetName}!A2:${column}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(range)}`;
+    const headers = {
+        'Authorization': 'Bearer ' + getServiceAccountToken(),
+        'Content-Type': 'application/json',
+    };
+    const options = { method: 'get', headers: headers, muteHttpExceptions: true };
+    const response = UrlFetchApp.fetch(url, options);
+    const values = JSON.parse(response.getContentText()).values || [];
+
+    const citizenRow = values.find(row => row[1] === email);
+    if (!citizenRow) {
+        return 0;
+    }
+
+    const attempts = parseInt(citizenRow[citizenRow.length - 1], 10);
+    return isNaN(attempts) ? 0 : attempts;
+}
+
+function getNextWeekStartDate(currentWeek) {
+    const weekStartDates = getWeekStartDates();
+    const nextWeek = weekStartDates.find(weekData => weekData.week === currentWeek + 1);
+    return nextWeek ? nextWeek.date : 'N/A';
+}
+
+function incrementQuizAttempts(email, week) {
+    const column = QUIZ_ATTEMPTS_COLUMN_MAP[week];
+    const sheetName = 'Citizens';
+    const range = `${sheetName}!A2:${column}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(range)}`;
+    const headers = {
+        'Authorization': 'Bearer ' + getServiceAccountToken(),
+        'Content-Type': 'application/json',
+    };
+    const options = { method: 'get', headers: headers, muteHttpExceptions: false };
+    const response = UrlFetchApp.fetch(url, options);
+    const values = JSON.parse(response.getContentText()).values || [];
+
+    const citizenIndex = values.findIndex(row => row[1] === email);
+    if (citizenIndex === -1) {
+        Logger.log('Citizen not found.');
+        return;
+    }
+
+    const rowIndex = citizenIndex + 2; // Adjust for header row and 0-based index
+    const currentAttempts = parseInt(values[citizenIndex][values[citizenIndex].length - 1], 10) || 0;
+    const newAttempts = currentAttempts + 1;
+
+    const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${sheetName}!${column}${rowIndex}?valueInputOption=USER_ENTERED`;
+    const updateOptions = {
+        method: 'put',
+        headers: headers,
+        muteHttpExceptions: true,
+        payload: JSON.stringify({
+            range: `${sheetName}!${column}${rowIndex}`,
+            majorDimension: 'ROWS',
+            values: [[newAttempts]]
+        })
+    };
+
+    UrlFetchApp.fetch(updateUrl, updateOptions);
 }

@@ -100,7 +100,7 @@ async function signUp(name, email, userId, spaceId, house, occupation) {
         }
 
         // Allocate plot and check if it succeeded
-        var allocatePlotResponse = await allocatePlot(randomPlot);
+        var allocatePlotResponse = await allocatePlot(randomPlot, getImageUrlForSalary(0));
         if (allocatePlotResponse.getResponseCode() !== 200) {
             throw new Error("Failed to allocate plot.");
         }

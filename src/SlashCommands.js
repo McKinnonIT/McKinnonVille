@@ -41,7 +41,6 @@ function slashPlay(event) {
 
 function slashTest(event) {
     return selectOccupationDialog(event);
-    // return sendQuiz("Art", 1);
 }
 
 /**
@@ -53,6 +52,18 @@ function slashTest(event) {
  */
 function slashQuiz(event) {
     var citizen = new Citizen(event.user.email);
+    const currentWeek = getWeek();
+
+    // Fetch the current attempts for the week
+    const currentAttempts = citizen.getQuizAttempts();
+
+    if (currentAttempts >= QUIZ_MAX_ATTEMPTS) {
+        const nextWeekStartDate = getNextWeekStartDate(currentWeek);
+        const message = `You have reached your quiz attempt limit for this week. You can try again next week starting from ${nextWeekStartDate}.`;
+        sendMessage(message, citizen.spaceId);
+        return;
+    }
+
     return sendQuiz(citizen.occupation, citizen.occupationLevel);
 }
 
@@ -80,4 +91,8 @@ function slashStats(event) {
             "text": "You are not registered to play McKinnonVille. Type /play to sign up!"
         }
     }
+}
+
+function slashVote(event) {
+    return sendVotingDialog(event);
 }
