@@ -1,72 +1,4 @@
 /**
- * Sends a scheduled quiz to each citizen based on their occupation and occupation level.
- */
-function sendScheduledQuiz() {
-    const citizens = getAllCitizens();
-
-    citizens.forEach(citizen => {
-        const message = "Your quiz is now ready to be completed. Use the /quiz command to attempt a level up!";
-        sendMessage(message, citizen.spaceId);
-    });
-}
-
-/**
- * Creates or updates triggers to execute the specified function on specified dates and times.
- * The dates and times are fetched from the "Setup" sheet, which should have columns "Week", "Date", "Message Time", and "Message".
- * 
- * @param {string} functionName - The name of the function to trigger.
- * @param {function} getDatesWithTimes - The function to fetch the dates and times.
- */
-function createScheduledTriggers(functionName, getDatesWithTimes) {
-    const weekStartDates = getDatesWithTimes();
-    const existingTriggers = ScriptApp.getProjectTriggers();
-
-    // Delete all existing triggers for the specified function
-    existingTriggers.forEach(trigger => {
-        if (trigger.getHandlerFunction() === functionName) {
-            ScriptApp.deleteTrigger(trigger);
-        }
-    });
-
-    // Create new triggers based on weekStartDates
-    weekStartDates.forEach(weekData => {
-        const { date, time } = weekData;
-        const [hours, minutes] = time.split(':').map(Number);
-        const [day, month, year] = date.split('/').map(Number);
-
-        const triggerDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
-
-        if (triggerDate > new Date()) {
-            ScriptApp.newTrigger(functionName)
-                .timeBased()
-                .at(triggerDate)
-                .create();
-
-            console.log(`Created trigger for ${functionName} at ${triggerDate}`);
-        } else {
-            console.log(`Skipped creating trigger for ${functionName} at ${triggerDate} as it is in the past`);
-        }
-    });
-}
-
-/**
- * Creates or updates triggers to execute the sendScheduledQuiz function on specified dates and times.
- * The dates and times are fetched from the "Setup" sheet, which should have columns "Week", "Date", "Message Time", and "Message".
- */
-function createScheduledQuizTriggers() {
-    createScheduledTriggers('sendScheduledQuiz', getQuizStartDatesWithTimes);
-}
-
-/**
- * Creates or updates triggers to execute the sendScheduledMessage function on specified dates and times.
- * The dates and times are fetched from the "Setup" sheet, which should have columns "Week", "Date", "Message Time", and "Message".
- */
-function createScheduledMessageTriggers() {
-    createScheduledTriggers('sendScheduledMessage', getWeekStartDatesWithTimes);
-}
-
-
-/**
  * Deletes all triggers from the project.
  */
 function deleteAllTriggers() {
@@ -103,46 +35,17 @@ function getWeekStartDatesWithTimes() {
     }));
 }
 
-/**
- * Fetches the start dates, week numbers, and message times from the "Setup" sheet.
- * The "Setup" sheet should have columns "Week", "Date", and "Message Time".
- * 
- * @returns {Array} An array of objects, each containing a week number, start date, and message time.
- */
-function getQuizStartDatesWithTimes() {
-    const sheetName = 'Setup';
-    const range = encodeURIComponent(`${sheetName}!A21:D39`);
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${range}`;
-    const headers = {
-        'Authorization': 'Bearer ' + getServiceAccountToken(),
-        'Content-Type': 'application/json',
-    };
-    const options = {
-        method: 'get',
-        headers: headers,
-        muteHttpExceptions: true,
-    };
-    const response = UrlFetchApp.fetch(url, options);
-    const data = JSON.parse(response.getContentText()).values;
-
-    return data.map(row => ({
-        week: row[0],
-        date: row[1],
-        time: row[2],
-    }));
-}
-
 /*
 **
  * Fetches the messages for a specific week from the "Setup" sheet.
- * The "Setup" sheet should have columns "Week", "Date", "Message Time", and "Message".
+ * The "Setup" sheet should have columns "Week" and "Message".
  * 
  * @param {number} week - The week number for which to fetch the messages.
  * @returns {Array} An array of messages for the specified week.
  */
 function getWeekMessages(week) {
     const sheetName = 'Setup';
-    const range = encodeURIComponent(`${sheetName}!A2:D16`);
+    const range = encodeURIComponent(`${sheetName}!A22:B30`);
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${range}`;
     const headers = {
         'Authorization': 'Bearer ' + getServiceAccountToken(),
@@ -158,7 +61,7 @@ function getWeekMessages(week) {
 
     return data
         .filter(row => row[0] == week)
-        .map(row => row[3]);  // Return only the message from column D
+        .map(row => row[1]);  // Return only the message from column B
 }
 
 
@@ -208,7 +111,7 @@ function createWeekDateDictionary(weekStartDates) {
  */
 function getWeekStartDates() {
     const sheetName = 'Setup';
-    const range = encodeURIComponent(`${sheetName}!A2:B16`);
+    const range = encodeURIComponent(`${sheetName}!A3:B11`);
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${range}`;
 
     const headers = {
@@ -279,5 +182,14 @@ function sendScheduledMessage() {
     });
 }
 
+/**
+ * Sends a scheduled quiz to each citizen based on their occupation and occupation level.
+ */
+function sendScheduledQuiz() {
+    const citizens = getAllCitizens();
 
-
+    citizens.forEach(citizen => {
+        const message = "Your quiz is now ready to be completed. Use the /quiz command to attempt a level up!";
+        sendMessage(message, citizen.spaceId);
+    });
+}
