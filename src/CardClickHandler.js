@@ -67,7 +67,7 @@ async function handleOccupationSelection(event) {
     } catch (error) {
         let userMessage;
         if (error instanceof HouseNotFound) {
-            userMessage = `🥺 Sorry ${event.user.displayName.match(/^\S+/)[0]}, it looks like I can't find which house you're in.Send an email to help @mckinnonsc.vic.edu.au and we'll get this sorted for yo.`
+            userMessage = `🥺 Sorry ${event.user.displayName.match(/^\S+/)[0]}, it looks like I can't find which house you're in. Send an email to help @mckinnonsc.vic.edu.au and we'll get this sorted for you.`
         }
         return logErrorAndRespond(error, userMessage || "Error in handleOccupationSelection");
     }
