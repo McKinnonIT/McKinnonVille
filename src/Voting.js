@@ -54,16 +54,24 @@ function getVotingOptions(week) {
  * @returns {Array} An array of widgets formatted for Google Chat dialogs.
  */
 function generateVotingWidgets(options) {
-    return [{
+    const widget = [{
         selectionInput: {
             name: "voteOption",
             type: "RADIO_BUTTON",
-            items: options.map(option => ({
-                text: `${option.name}
-                ${option.description}`, value: String(option.id)
-            }))
+            items: [
+                ...options.map(option => ({
+                    text: `${option.name}\n${option.description}`,
+                    value: String(option.id)
+                })),
+                {
+                    text: "None of the above",
+                    value: "0"
+                }
+            ]
         }
     }];
+
+    return widget
 }
 
 /**
@@ -76,7 +84,6 @@ function sendVotingDialog(event) {
     const email = event.user.email; // Assuming the event object contains the user's email
     const existingVote = getCitizenVote(email, week);
 
-    Logger.log(`Week: ${week}, Email: ${email}, Existing Vote: ${existingVote}`);
     if (existingVote !== null) {
         return {
             "action_response": {
@@ -160,11 +167,13 @@ function handleVoteSubmission(event) {
 
     updateVote(event.user.email, week, selectedOptionId);
 
+
+    const message = "Your vote has been successfully recorded, Check out the McKinnonVille Map to see how your house is progressing! https://mckinnon.sc/mckinnonville"
     return {
         "action_response": {
             "type": "NEW_MESSAGE",
         },
-        "text": "Your vote has been successfully recorded."
+        "text": message
     };
 }
 
