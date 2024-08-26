@@ -5,6 +5,7 @@ const commandHandlers = {
     'handleSendOccupationDialog': handleSendOccupationDialog,
     'handleQuizSubmission': handleQuizSubmission,
     'handleOccupationSelection': handleOccupationSelection,
+    'handleVoteSubmission': handleVoteSubmission,
 };
 
 /**

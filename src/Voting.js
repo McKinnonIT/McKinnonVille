@@ -1,3 +1,15 @@
+const VOTE_SUBMISSION_COLUMN_MAP = {
+    1: "O",
+    2: "P",
+    3: "Q",
+    4: "R",
+    5: "S",
+    6: "T",
+    7: "U",
+    8: "V",
+    9: "W",
+};
+
 function getVotingOptions(week) {
     const sheetName = 'Ordinance Votes';
     const range = encodeURIComponent(`${sheetName}!A2:D`);  // Adjust to include all necessary columns
@@ -55,19 +67,55 @@ function generateVotingWidgets(options) {
 }
 
 /**
- * Displays a voting dialog in Google Chat.
+ * Displays a voting dialog in Google Chat or responds with a message if the user has already voted.
+ * @param {Object} event - The event object from Google Chat.
+ * @return {Object} - The response object for Google Chat.
  */
 function sendVotingDialog(event) {
-    const WEEK = 1;  // Specify the week for which voting options should be retrieved
-    const options = getVotingOptions(WEEK);
+    const week = getWeek();
+    const email = event.user.email; // Assuming the event object contains the user's email
+    const existingVote = getCitizenVote(email, week);
+
+    Logger.log(`Week: ${week}, Email: ${email}, Existing Vote: ${existingVote}`);
+    if (existingVote !== null) {
+        return {
+            "action_response": {
+                "type": "DIALOG",
+                "dialog_action": {
+                    "dialog": {
+                        "body": {
+                            "sections": [
+                                {
+                                    "header": "",
+                                    "collapsible": false,
+                                    "uncollapsibleWidgetsCount": 1,
+                                    "widgets": [
+                                        {
+                                            "textParagraph": {
+                                                "text": `You have already submitted a vote for this ordinance.`
+                                            }
+                                        },
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+    }
+
+
+    const options = getVotingOptions(week);
 
     if (options.length === 0) {
         return {
             "action_response": {
                 "type": "NEW_MESSAGE",
-                "text": "No voting options are currently available."
-            }
+            },
+            "text": "No voting options are currently available."
         };
+
     }
 
     return {
@@ -77,7 +125,7 @@ function sendVotingDialog(event) {
                 "dialog": {
                     "body": {
                         "header": {
-                            "title": `Week ${WEEK} Ordinance Vote`,
+                            "title": `Week ${week} Ordinance Vote`,
                             "subtitle": "Please select one of the following options to vote on."
                         },
                         "sections": [{
@@ -100,26 +148,53 @@ function sendVotingDialog(event) {
     };
 }
 
+
+
 /**
  * Handles the submission of a vote and records it to the "Citizens" sheet.
  * @param {Object} event - Event containing the vote selection from the user.
  */
 function handleVoteSubmission(event) {
-    const selectedOptionId = event.common.formInputs.optionId; // Assume the input name is optionId
-    const citizenRow = `Citizens!C${event.user.emailRow}`; // Assuming column C is for votes, and we know the row for the user's email
+    const selectedOptionId = event.common.formInputs.voteOption[""].stringInputs.value[0];
+    const week = getWeek(); // Function to determine the current week, which needs to be implemented
 
-    // Update the spreadsheet with the selected vote
-    const sheetRange = `${citizenRow}`;
-    const voteUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${sheetRange}:append?valueInputOption=USER_ENTERED`;
+    updateVote(event.user.email, week, selectedOptionId);
+
+    return {
+        "action_response": {
+            "type": "NEW_MESSAGE",
+        },
+        "text": "Your vote has been successfully recorded."
+    };
+}
+
+/**
+ * Updates the vote in the sheet for a specific citizen and week.
+ * @param {string} email - The citizen's email.
+ * @param {number} week - The week number for which the vote is being updated.
+ * @param {string} selectedOptionId - The vote option selected by the citizen.
+ * @return {boolean} - True if the update was successful, false otherwise.
+ */
+function updateVote(email, week, selectedOptionId) {
+    const column = VOTE_SUBMISSION_COLUMN_MAP[week]; // A map of weeks to columns
+    const sheetName = "Citizens";
+    const citizenRow = getCitizenRow(email)
+
+
+    if (!citizenRow) {
+        Logger.log(`Email ${email} not found in the Citizens sheet.`);
+        return false;
+    }
+
+    const cell = `${column}${citizenRow}`;
 
     const votePayload = JSON.stringify({
-        values: [
-            [selectedOptionId] // Update the specific cell with the vote id
-        ],
+        values: [[selectedOptionId]],
     });
 
+    const voteUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${sheetName}!${cell}?valueInputOption=USER_ENTERED`;
     const voteResponse = UrlFetchApp.fetch(voteUrl, {
-        method: 'post',
+        method: 'put',
         headers: {
             'Authorization': 'Bearer ' + getServiceAccountToken(),
             'Content-Type': 'application/json',
@@ -128,10 +203,44 @@ function handleVoteSubmission(event) {
         muteHttpExceptions: true,
     });
 
-    return {
-        "action_response": {
-            "type": "NEW_MESSAGE",
-            "text": "Your vote has been successfully recorded."
-        }
+    Logger.log(`Vote response for email ${email}: ${voteResponse.getContentText()} at cell ${cell}`);
+    return voteResponse.getResponseCode() === 200;
+}
+
+/**
+ * Retrieves the vote for a given citizen and week from the "Citizens" sheet.
+ * @param {string} email - The email of the citizen.
+ * @param {number} week - The week number for which to retrieve the vote.
+ * @return {string|null} - The vote option ID if found, or null if not found.
+ */
+function getCitizenVote(email, week) {
+    const sheetName = 'Citizens';
+    const column = VOTE_SUBMISSION_COLUMN_MAP[week]; // A map of weeks to columns
+    const rowIndex = getCitizenRow(email);
+
+    if (rowIndex === null) {
+        Logger.log(`Email ${email} not found in the Citizens sheet.`);
+        return null;
+    }
+
+    const cellRange = `${sheetName}!${column}${rowIndex}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(cellRange)}`;
+    const options = {
+        method: 'get',
+        headers: {
+            'Authorization': 'Bearer ' + getServiceAccountToken(),
+            'Content-Type': 'application/json',
+        },
+        muteHttpExceptions: false,
     };
+
+    const response = UrlFetchApp.fetch(url, options);
+    const values = JSON.parse(response.getContentText()).values || [];
+
+    if (values.length === 0 || values[0].length === 0) {
+        Logger.log(`No vote recorded for email ${email} in week ${week}.`);
+        return null;
+    }
+
+    return values[0][0];
 }
