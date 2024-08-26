@@ -210,3 +210,34 @@ function updateCitizenOccupationLevel(email, newLevel) {
 
     UrlFetchApp.fetch(updateUrl, updateOptions);
 }
+
+/**
+ * Finds the row index of the citizen's email in the "Citizens" sheet.
+ * @param {string} email - The email of the citizen to find.
+ * @return {number|null} - The row index of the citizen (1-based index), or null if not found.
+ */
+function getCitizenRow(email) {
+    const sheetName = 'Citizens';
+    const range = `${sheetName}!B2:B`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(range)}`;
+    const options = {
+        method: 'get',
+        headers: {
+            'Authorization': 'Bearer ' + getServiceAccountToken(),
+            'Content-Type': 'application/json',
+        },
+        muteHttpExceptions: false,
+    };
+    const response = UrlFetchApp.fetch(url, options);
+    const values = JSON.parse(response.getContentText()).values || [];
+
+    // Loop through the values to find the email and return its index
+    for (let i = 0; i < values.length; i++) {
+        if (values[i][0] === email) {
+            return i + 2; // Adjusting for header row and 0-based index
+        }
+    }
+
+    // Return null if the email is not found
+    return null;
+}

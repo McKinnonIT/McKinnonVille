@@ -193,3 +193,15 @@ function sendScheduledQuiz() {
         sendMessage(message, citizen.spaceId);
     });
 }
+
+/**
+ * Sends a scheduled vote to all citizens.
+ */
+function sendScheduledVote() {
+    const citizens = getAllCitizens();
+
+    citizens.forEach(citizen => {
+        const message = "An ordinance vote is now open. Use the /vote command to cast your vote!";
+        sendMessage(message, citizen.spaceId);
+    });
+}
