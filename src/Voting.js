@@ -156,6 +156,13 @@ function sendVotingDialog(event) {
 }
 
 
+function handleSendVotingDialog(event) {
+    return sendVotingDialog(event);
+}
+
+function handleSendQuizDialog(event) {
+    return sendQuizDialog(event);
+}
 
 /**
  * Handles the submission of a vote and records it to the "Citizens" sheet.
@@ -176,6 +183,7 @@ function handleVoteSubmission(event) {
         "text": message
     };
 }
+
 
 /**
  * Updates the vote in the sheet for a specific citizen and week.
