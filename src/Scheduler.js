@@ -176,8 +176,7 @@ function sendScheduledMessage() {
     }
 
     const citizens = getAllCitizens();
-    // DONT LEAVE THIS SLICE IN!!!!
-    citizens.slice(0, 1).forEach(citizen => {
+    citizens.forEach(citizen => {
         console.log(`Sending: "${scheduledMessage}" to ${citizen.name} at ${citizen.spaceId}`);
         sendMessage(
             {
