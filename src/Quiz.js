@@ -37,6 +37,7 @@ function getSubjectsForOccupation(occupation) {
     }
 
     // Filter rows by occupation and extract the subjects
+    Logger.log("LOGGER: " + occupation);
     const subjectsRow = values.filter(row => row[0].toLowerCase() === occupation.toLowerCase());
     return subjectsRow.length > 0 ? subjectsRow[0][2].split(',').map(subject => subject.trim()) : [];
 }
@@ -124,6 +125,11 @@ function generateQuizQuestionsWidgets(questions) {
     }));
 
     return widgets
+}
+
+function sendQuizDialog(event) {
+    const citizen = new Citizen(event.user.email);
+    return sendQuiz(citizen.occupation, citizen.occupationLevel);
 }
 
 /**

@@ -168,7 +168,7 @@ function getWeek(dateStr = null) {
  */
 function sendScheduledMessage() {
     const currentWeek = getWeek();
-    const ScheduledMessage = getWeekMessages(currentWeek);
+    const scheduledMessage = getWeekMessages(currentWeek);
 
     if (typeof currentWeek === 'string' && currentWeek.startsWith('Error')) {
         Logger.log(currentWeek);
@@ -176,9 +176,111 @@ function sendScheduledMessage() {
     }
 
     const citizens = getAllCitizens();
-    citizens.forEach(citizen => {
-        console.log(`Sending: "${ScheduledMessage}" to ${citizen.name} at ${citizen.spaceId}`);
-        sendMessage(`${ScheduledMessage}`, citizen.spaceId);
+    // DONT LEAVE THIS SLICE IN!!!!
+    citizens.slice(0, 1).forEach(citizen => {
+        console.log(`Sending: "${scheduledMessage}" to ${citizen.name} at ${citizen.spaceId}`);
+        sendMessage(
+            {
+                "action_response": {
+                    "type": "NEW_MESSAGE"
+                },
+                "cardsV2": [
+                    {
+                        "cardId": "reply-card-id",
+                        "card": {
+                            "header": {
+                                "title": "McKinnonVille",
+                                "subtitle": `Week ${currentWeek}`,
+                                "imageUrl": "https://raw.githubusercontent.com/McKinnonIT/McKinnonVille/main/assets/img/plot/estate.png",
+                                "imageType": "CIRCLE"
+                            },
+                            "sections": [
+                                {
+                                    "header": "",
+                                    "collapsible": false,
+                                    "uncollapsibleWidgetsCount": 1,
+                                    "widgets": [
+                                        {
+                                            "decoratedText": {
+                                                "icon": {
+                                                    "iconUrl": "https://cdn-icons-png.flaticon.com/128/4457/4457168.png"
+                                                },
+                                                "text": "",
+                                                "bottomLabel": "Weekly message"
+                                            }
+                                        },
+                                        {
+                                            "textParagraph": {
+                                                "text": `${scheduledMessage}`
+                                            }
+                                        },
+                                        {
+                                            "decoratedText": {
+                                                "icon": {
+                                                    "iconUrl": "https://cdn-icons-png.flaticon.com/128/6778/6778935.png"
+                                                },
+                                                "bottomLabel": "Level up",
+                                                "text": ""
+                                            }
+                                        },
+                                        {
+                                            "textParagraph": {
+                                                "text": `Ready to level up? Click the button attempt a level up!`
+                                            }
+                                        },
+                                        {
+                                            "buttonList": {
+                                                "buttons": [
+                                                    {
+                                                        "text": "Start level up quiz",
+                                                        "onClick": {
+                                                            "action": {
+                                                                "interaction": "OPEN_DIALOG",
+                                                                "function": "handleSendQuizDialog"
+                                                            }
+                                                        },
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "decoratedText": {
+                                                "icon": {
+                                                    "iconUrl": "https://cdn-icons-png.flaticon.com/128/927/927295.png"
+                                                },
+                                                "bottomLabel": "Ordinance vote",
+                                                "text": ""
+                                            }
+                                        },
+                                        {
+                                            "textParagraph": {
+                                                "text": "An ordinance vote is now open. Click the button to cast your vote!"
+                                            }
+                                        },
+                                        {
+                                            "buttonList": {
+                                                "buttons": [
+                                                    {
+                                                        "text": "Click here to vote now",
+                                                        "onClick": {
+                                                            "action": {
+                                                                "interaction": "OPEN_DIALOG",
+                                                                "function": "handleSendVotingDialog"
+                                                            }
+                                                        },
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+            , citizen.spaceId);
+
     });
 }
 
