@@ -1,3 +1,5 @@
 function testTesting() {
-    sendScheduledMessage();
+    const week = getWeek();
+    sendScheduledMessage(week);
+
 }

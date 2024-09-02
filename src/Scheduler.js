@@ -166,8 +166,8 @@ function getWeek(dateStr = null) {
 /**
  * Sends the current week's message to all existing citizens.
  */
-function sendScheduledMessage() {
-    const currentWeek = getWeek();
+function sendScheduledMessage(week) {
+    const currentWeek = week;
     const scheduledMessage = getWeekMessages(currentWeek);
 
     if (typeof currentWeek === 'string' && currentWeek.startsWith('Error')) {
@@ -177,6 +177,11 @@ function sendScheduledMessage() {
 
     const citizens = getAllCitizens();
     citizens.forEach(citizen => {
+        if (!citizen.spaceId) {
+            Logger.log(`Citizen ${citizen.name} does not have a space ID.`);
+            return;
+        }
+
         console.log(`Sending: "${scheduledMessage}" to ${citizen.name} at ${citizen.spaceId}`);
         sendMessage(
             {

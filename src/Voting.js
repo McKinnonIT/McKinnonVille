@@ -161,7 +161,7 @@ function handleSendVotingDialog(event) {
 }
 
 function handleSendQuizDialog(event) {
-    return sendQuizDialog(event);
+    return slashQuiz(event);
 }
 
 /**
