@@ -65,7 +65,7 @@ function generateVotingWidgets(options) {
                 })),
                 {
                     text: "None of the above",
-                    value: "0"
+                    value: "4"
                 }
             ]
         }
@@ -84,7 +84,7 @@ function sendVotingDialog(event) {
     const email = event.user.email; // Assuming the event object contains the user's email
     const existingVote = getCitizenVote(email, week);
 
-    if (existingVote !== null) {
+    if (existingVote) {
         return {
             "action_response": {
                 "type": "DIALOG",
@@ -259,5 +259,5 @@ function getCitizenVote(email, week) {
         return null;
     }
 
-    return values[0][0];
+    return parseInt(values[0][0]);
 }
