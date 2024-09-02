@@ -96,8 +96,8 @@ class Citizen {
     /**
      * Gets the citizens current week quiz attempts
      */
-    getQuizAttempts() {
-        this.week = getWeek()
+    getQuizAttempts(week) {
+        this.week = week;
         return getQuizAttempts(this.email, this.week);
     }
 }

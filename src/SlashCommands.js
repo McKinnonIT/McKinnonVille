@@ -55,7 +55,7 @@ function slashQuiz(event) {
     const currentWeek = getWeek();
 
     // Fetch the current attempts for the week
-    const currentAttempts = citizen.getQuizAttempts();
+    const currentAttempts = citizen.getQuizAttempts(currentWeek);
 
     if (currentAttempts >= QUIZ_MAX_ATTEMPTS) {
         const nextWeekStartDate = getNextWeekStartDate(currentWeek);

@@ -39,11 +39,12 @@ async function handleQuizSubmission(event) {
     const quizResults = evaluateSubmittedAnswers(event.common.formInputs);
     const totalQuestions = Object.keys(event.common.formInputs).length;
     const correctAnswers = quizResults.correctAnswers.count;
+    const week = getWeek();
 
     const citizen = new Citizen(event.user.email);
     citizen.incrementQuizAttempts();
 
-    let remainingAttempts = Math.max(0, QUIZ_MAX_ATTEMPTS - citizen.getQuizAttempts());
+    let remainingAttempts = Math.max(0, QUIZ_MAX_ATTEMPTS - citizen.getQuizAttempts(week));
 
     let message;
     if (correctAnswers === totalQuestions) {
