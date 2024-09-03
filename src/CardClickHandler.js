@@ -36,15 +36,25 @@ async function handleSendOccupationDialog(event) {
 }
 
 async function handleQuizSubmission(event) {
+    const week = getWeek();
+    let remainingAttempts = Math.max(0, QUIZ_MAX_ATTEMPTS - citizen.getQuizAttempts(week));
+    if (remainingAttempts === 0) {
+        return {
+            "action_response": {
+                "type": "NEW_MESSAGE",
+            },
+            "text": `You have already attempted the Week ${week} quiz. Please try again next week.`
+        };
+    }
+
+
     const quizResults = evaluateSubmittedAnswers(event.common.formInputs);
     const totalQuestions = Object.keys(event.common.formInputs).length;
     const correctAnswers = quizResults.correctAnswers.count;
-    const week = getWeek();
 
     const citizen = new Citizen(event.user.email);
     citizen.incrementQuizAttempts();
 
-    let remainingAttempts = Math.max(0, QUIZ_MAX_ATTEMPTS - citizen.getQuizAttempts(week));
 
     let message;
     if (correctAnswers === totalQuestions) {
