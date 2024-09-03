@@ -169,6 +169,36 @@ function handleSendQuizDialog(event) {
  * @param {Object} event - Event containing the vote selection from the user.
  */
 function handleVoteSubmission(event) {
+    const existingVote = getCitizenVote(event.user.email, week);
+
+    if (existingVote) {
+        return {
+            "action_response": {
+                "type": "DIALOG",
+                "dialog_action": {
+                    "dialog": {
+                        "body": {
+                            "sections": [
+                                {
+                                    "header": "",
+                                    "collapsible": false,
+                                    "uncollapsibleWidgetsCount": 1,
+                                    "widgets": [
+                                        {
+                                            "textParagraph": {
+                                                "text": `You have already submitted a vote for this ordinance.`
+                                            }
+                                        },
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+    }
+
     const selectedOptionId = event.common.formInputs.voteOption[""].stringInputs.value[0];
     const week = getWeek(); // Function to determine the current week, which needs to be implemented
 
