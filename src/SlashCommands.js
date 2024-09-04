@@ -39,8 +39,10 @@ function slashPlay(event) {
     }
 }
 
+
 function slashTest(event) {
-    return selectOccupationDialog(event);
+    const msg = '';
+    return msg;
 }
 
 /**

@@ -32,7 +32,7 @@ async function handleSubmitAnswer(event) {
 }
 
 async function handleSendOccupationDialog(event) {
-    return selectOccupationDialog();
+    return selectOccupationDialog(event);
 }
 
 async function handleQuizSubmission(event) {

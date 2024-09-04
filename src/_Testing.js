@@ -1,17 +1,24 @@
 function testTesting() {
-    const week = getWeek();
+
+    // Example usage for single village:
+    try {
+        const flynn = Village.getVillageStats("Flynn");
+        Logger.log(flynn.population);
+        Logger.log(flynn.gold);
+    } catch (e) {
+        Logger.log(e.message);
+    }
+
+    // Example usage for multiple villages:
+    try {
+        const [flynn, monash, chisholm] = Village.getVillageStats(["Flynn", "Monash", "Chisholm"]);
+        Logger.log(flynn.population);
+        Logger.log(monash.gold);
+        Logger.log(chisholm.education);
+    } catch (e) {
+        Logger.log(e.message);
+    }
+
+    // const week = getWeek();
     //sendScheduledMessage(week);
-
-    const vote = getCitizenVote("sam.neal@mckinnonsc.vic.edu.au", week);
-    Logger.log(vote)
-
-    // const citizens = getAllCitizens();
-    // citizens.forEach(c => {
-    //     for (let i = 1; i <= 9; i++) {
-    //         const attempts = getQuizAttempts(c.email, i)
-    //         Logger.log(`${c.email}'s Week ${i} attempts: ${i}`)
-
-    //     }
-    // })
-
 }

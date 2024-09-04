@@ -49,7 +49,7 @@ function generateOccupationStatsString(education, health, happiness, salaryLow, 
     return statsString;
 }
 
-function generateVillageBalanceString(education, health, happiness) {
+function generateVillageBalance(education, health, happiness) {
     // Function to generate the bar for a given factor
     function generateBar(factor) {
         let filledBlocks = Math.round(factor); // Round to the nearest integer
@@ -57,18 +57,10 @@ function generateVillageBalanceString(education, health, happiness) {
         return '🟩'.repeat(filledBlocks) + '⬛'.repeat(emptyBlocks);
     }
 
-    // Generate bars for each factor
-    let educationBar = generateBar(education);
-    let healthBar = generateBar(health);
-    let happinessBar = generateBar(happiness);
-
-    // Construct the final string
-    let balanceString = "📚  " + educationBar + "\n" +
-        "🚑  " + healthBar + "\n" +
-        "😀  " + happinessBar;
-
-    return balanceString;
+    // Generate bars for each factor and return them as an object
+    return {
+        education: generateBar(education),
+        health: generateBar(health),
+        happiness: generateBar(happiness)
+    };
 }
-
-
-
