@@ -16,7 +16,7 @@ class Village {
         this.prosperity = stats[8];    // Column J
     }
 
-    static getVillageStats(villageNames) {
+    static get(villageNames) {
         const sheetName = 'Villages';
         const range = 'A3:J'; // Adjust the range to include all relevant columns
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(sheetName + '!' + range)}`;
