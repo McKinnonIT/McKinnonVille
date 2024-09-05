@@ -1,6 +1,74 @@
 // Constants for the Google Sheets range and sheet name that stores occupation data.
 const OCCUPATIONS_SHEET_NAME = 'Occupations';
-const OCCUPATIONS_RANGE = 'A2:B';
+const OCCUPATIONS_RANGE = 'A2:P';
+
+
+class Occupation {
+    constructor(occupationName, stats) {
+        this.name = occupationName;
+        this.setStats(stats);
+    }
+
+    setStats(stats) {
+        this.icon = stats[0];            // Column A
+        this.name = stats[1];            // Column B
+        this.description = stats[2];     // Column C
+        this.subjects = stats[3];    // Column D
+        this.education = parseFloat(stats[4] || 0); // Column E
+        this.health = parseFloat(stats[5] || 0);    // Column F
+        this.happiness = parseFloat(stats[6] || 0); // Column G
+        this.salary = {
+            lower: parseFloat(stats[8] || 0), // Column I
+            upper: parseFloat(stats[9] || 0),   // Column J,
+            steps: stats.slice(10) // Columns K onwards
+        };
+    };
+
+    static get(occupationNames) {
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(OCCUPATIONS_SHEET_NAME + '!' + OCCUPATIONS_RANGE)}`;
+        const headers = {
+            'Authorization': 'Bearer ' + getServiceAccountToken(),
+            'Content-Type': 'application/json',
+        };
+        const options = { method: 'get', headers: headers, muteHttpExceptions: true };
+        const response = UrlFetchApp.fetch(url, options);
+        const values = JSON.parse(response.getContentText()).values || [];
+
+        // Normalize occupationNames to an array, even if it's a single string
+        if (!Array.isArray(occupationNames)) {
+            occupationNames = [occupationNames];
+        }
+
+        // Create an object to store stats by occupation name
+        const occupationsStats = {};
+        values.forEach(row => {
+            const occupationName = row[1]; // Column B (Occupation Name)
+            if (occupationNames.includes(occupationName)) {
+                occupationsStats[occupationName] = row; // Store the whole row
+            }
+        });
+
+        // If only one occupation name was provided, return a single Occupation instance
+        if (occupationNames.length === 1) {
+            const name = occupationNames[0];
+            if (occupationsStats[name]) {
+                return new Occupation(name, occupationsStats[name]);
+            } else {
+                throw new Error(`Occupation '${name}' not found`);
+            }
+        }
+
+        // For multiple occupation names, return an array of Occupation instances
+        return occupationNames.map(name => {
+            if (occupationsStats[name]) {
+                return new Occupation(name, occupationsStats[name]);
+            } else {
+                throw new Error(`Occupation '${name}' not found`);
+            }
+        });
+    }
+}
+
 
 /**
  * Fetches and returns a sorted list of occupations from a Google Sheet.
@@ -74,7 +142,7 @@ function selectOccupationDialog(event) {
         };
     }
 
-    const village = Village.getVillageStats(house);
+    const village = Village.get(house);
     const villageBalance = generateVillageBalance(village.education, village.health, village.happiness);
 
     const msg = {
