@@ -2,7 +2,6 @@
 const OCCUPATIONS_SHEET_NAME = 'Occupations';
 const OCCUPATIONS_RANGE = 'A2:P';
 
-
 class Occupation {
     constructor(occupationName, stats) {
         this.name = occupationName;
@@ -13,18 +12,23 @@ class Occupation {
         this.icon = stats[0];            // Column A
         this.name = stats[1];            // Column B
         this.description = stats[2];     // Column C
-        this.subjects = stats[3];    // Column D
+        this.subjects = stats[3];        // Column D
         this.education = parseFloat(stats[4] || 0); // Column E
         this.health = parseFloat(stats[5] || 0);    // Column F
         this.happiness = parseFloat(stats[6] || 0); // Column G
         this.salary = {
             lower: parseFloat(stats[8] || 0), // Column I
-            upper: parseFloat(stats[9] || 0),   // Column J,
-            steps: stats.slice(10) // Columns K onwards
+            upper: parseFloat(stats[9] || 0), // Column J
+            steps: stats.slice(10) // Columns K onwards for salary steps
         };
-    };
+    }
 
-    static get(occupationNames) {
+    // Normalize occupation names to lowercase to use them as object keys
+    static normalizeName(name) {
+        return name.toLowerCase().replace(/\s+/g, '_'); // Replace spaces with underscores
+    }
+
+    static get(occupationNames = null) {
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(OCCUPATIONS_SHEET_NAME + '!' + OCCUPATIONS_RANGE)}`;
         const headers = {
             'Authorization': 'Bearer ' + getServiceAccountToken(),
@@ -34,8 +38,19 @@ class Occupation {
         const response = UrlFetchApp.fetch(url, options);
         const values = JSON.parse(response.getContentText()).values || [];
 
+        // If occupationNames is null, return all occupations in an object format
+        if (occupationNames === null) {
+            const occupationsObj = {};
+            values.forEach(row => {
+                const occupationName = row[1]; // Column B (Occupation Name)
+                const normalizedName = Occupation.normalizeName(occupationName);
+                occupationsObj[normalizedName] = new Occupation(occupationName, row);
+            });
+            return occupationsObj; // Return as an object with keys for each occupation
+        }
+
         // Normalize occupationNames to an array, even if it's a single string
-        if (!Array.isArray(occupationNames)) {
+        if (typeof occupationNames === 'string') {
             occupationNames = [occupationNames];
         }
 
@@ -69,42 +84,6 @@ class Occupation {
     }
 }
 
-
-/**
- * Fetches and returns a sorted list of occupations from a Google Sheet.
- * Each occupation is expected to have an icon and a name.
- *
- * @returns {Array} An array of occupation objects, sorted alphabetically by name.
- */
-function getOccupations() {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(OCCUPATIONS_SHEET_NAME + "!" + OCCUPATIONS_RANGE)}`;
-    const headers = {
-        'Authorization': 'Bearer ' + getServiceAccountToken(),
-        'Content-Type': 'application/json',
-    };
-    const options = {
-        method: 'get',
-        headers: headers,
-        muteHttpExceptions: true,
-    };
-
-    const response = UrlFetchApp.fetch(url, options);
-    const values = JSON.parse(response.getContentText()).values;
-
-    if (values && values.length > 0) {
-        // Since we expect each row to have two elements (icon and name), we keep the rows as arrays
-        const occupations = values.map(row => ({
-            icon: row[0],
-            name: row[1]
-        }));
-        // Sort occupations alphabetically by name
-        const sortedOccupations = occupations.sort((a, b) => a.name.localeCompare(b.name));
-        return sortedOccupations;
-    } else {
-        Logger.log('No data found.');
-        return [];
-    }
-}
 
 /**
  * Converts an array of occupation objects into items for a selectionInput.
