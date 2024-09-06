@@ -35,7 +35,8 @@ function slashPlay(event) {
             }
         };
     } else {
-        return signUpDialog(event);
+        var house = getUserHouse(event.user.email);
+        return signUpDialog(house);
     }
 }
 

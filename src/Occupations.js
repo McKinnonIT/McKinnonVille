@@ -112,10 +112,84 @@ function selectOccupationDialog(event) {
 
     const village = Village.get(house);
     const villageBalance = generateVillageBalance(village.education, village.health, village.happiness);
-    const msg = buildOccupationDialog(occupations, house, villageBalance);
-    return msg;
-    /*
-    const msg = {
+    return buildOccupationDialog(occupations, house, villageBalance);
+}
+
+function buildOccupationDialog(occupations, house, villageBalance) {
+    // Helper function to generate the occupation stats for the dialog
+    function generateOccupationWidget(occupation) {
+        return {
+            "horizontalSizeStyle": "FILL_MINIMUM_SPACE",
+            "horizontalAlignment": "CENTER",
+            "verticalAlignment": "CENTER",
+            "widgets": [
+                {
+                    "image": {
+                        "imageUrl": occupation.imageUrl, // Icon URL for occupation
+                        "altText": occupation.name
+                    }
+                },
+                {
+                    "buttonList": {
+                        "buttons": [
+                            {
+                                "text": occupation.name,
+                                "onClick": {
+                                    "action": {
+                                        "function": "handleOccupationSelection",
+                                        "parameters": [{
+                                            "key": "occupation",
+                                            "value": occupation.name
+                                        }]
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "textParagraph": {
+                        "text": generateOccupationStatsString(occupation.education, occupation.health, occupation.happiness, occupation.salary.lower, occupation.salary.upper)
+                    }
+                }
+            ]
+        };
+    }
+
+    // Helper function to generate a bar display based on value
+    function generateBar(stat) {
+        const filled = Math.floor(stat);  // Number of filled squares
+        const empty = 5 - filled;         // Number of empty squares
+        return '🟩'.repeat(filled) + '⬛️'.repeat(empty);
+    }
+
+    // Add a placeholder to keep an even number of columnItems
+    function ensureEvenColumnItems(columnItems) {
+        if (columnItems.length % 2 !== 0) {
+            columnItems.push({
+                "horizontalSizeStyle": "FILL_MINIMUM_SPACE",
+                "horizontalAlignment": "CENTER",
+                "verticalAlignment": "CENTER",
+                "widgets": [
+                    {
+                        "textParagraph": {
+                            "text": " " // Empty space as a placeholder
+                        }
+                    }
+                ]
+            });
+        }
+        return columnItems;
+    }
+
+    // Convert occupations object to array and map to generate widgets
+    const occupationWidgets = Object.values(occupations).map(generateOccupationWidget);
+
+    // Ensure we have an even number of column items
+    const columnItems = ensureEvenColumnItems(occupationWidgets);
+
+    // Build dialog with sections and widgets
+    return {
         "action_response": {
             "type": "DIALOG",
             "dialog_action": {
@@ -129,7 +203,7 @@ function selectOccupationDialog(event) {
                                 "widgets": [
                                     {
                                         "textParagraph": {
-                                            "text": `To win McKinnonVille, your village ${house} needs to balance Education, Health and Happiness.  Each occupation impacts these stats, make sure to check what your village needs and whatever you choose you will be tested on each week to seek promotion. The higher the salary the nicer the [house] you can afford.`
+                                            "text": `To win McKinnonVille, your village ${house} needs to balance Education, Health and Happiness. Each occupation impacts these stats, make sure to check what your village needs and whatever you choose, you will be tested on each week to seek promotion. The higher the salary, the nicer the ${house} you can afford.`
                                         }
                                     },
                                     {
@@ -157,7 +231,7 @@ function selectOccupationDialog(event) {
                                     },
                                     {
                                         "textParagraph": {
-                                            "text": "<b>View detailed stats on the [McKinnonville Map]</b>"
+                                            "text": "<b>View detailed stats on the McKinnonville Map</b>"
                                         }
                                     },
                                     {
@@ -165,142 +239,7 @@ function selectOccupationDialog(event) {
                                     },
                                     {
                                         "columns": {
-                                            "columnItems": [
-                                                {
-                                                    "horizontalSizeStyle": "FILL_MINIMUM_SPACE",
-                                                    "horizontalAlignment": "CENTER",
-                                                    "verticalAlignment": "CENTER",
-                                                    "widgets": [
-                                                        {
-                                                            "image": {
-                                                                "imageUrl": "https://i.imgur.com/tSG1ayx.png",
-                                                                "altText": "Teacher"
-                                                            }
-                                                        },
-                                                        {
-                                                            "buttonList": {
-                                                                "buttons": [
-                                                                    {
-                                                                        "text": "Teacher",
-                                                                        "onClick": {
-                                                                            "openLink": {
-                                                                                "url": "https://developers.google.com/chat/ui/widgets/button-list"
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                ]
-                                                            }
-                                                        },
-                                                        {
-                                                            "textParagraph": {
-                                                                "text": "📚  🟩🟩🟩🟩🟩\n🚑  🟩🟩🟩🟩🟩\n😀  🟩🟩🟩⬛⬛️\n💰 $28k-$80k"
-                                                            }
-                                                        }
-                                                    ]
-                                                },
-                                                {
-                                                    "horizontalSizeStyle": "FILL_MINIMUM_SPACE",
-                                                    "horizontalAlignment": "CENTER",
-                                                    "verticalAlignment": "CENTER",
-                                                    "widgets": [
-                                                        {
-                                                            "image": {
-                                                                "imageUrl": "https://i.imgur.com/tSG1ayx.png",
-                                                                "altText": "Teacher"
-                                                            }
-                                                        },
-                                                        {
-                                                            "buttonList": {
-                                                                "buttons": [
-                                                                    {
-                                                                        "text": "Chef",
-                                                                        "onClick": {
-                                                                            "openLink": {
-                                                                                "url": "https://developers.google.com/chat/ui/widgets/button-list"
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                ]
-                                                            }
-                                                        },
-                                                        {
-                                                            "textParagraph": {
-                                                                "text": "📚  🟩🟩🟩🟩🟩\n🚑  🟩🟩🟩🟩🟩\n😀  🟩🟩🟩⬛⬛️\n💰 $28k-$80k"
-                                                            }
-                                                        }
-                                                    ]
-                                                }
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "columns": {
-                                            "columnItems": [
-                                                {
-                                                    "horizontalSizeStyle": "FILL_MINIMUM_SPACE",
-                                                    "horizontalAlignment": "CENTER",
-                                                    "verticalAlignment": "CENTER",
-                                                    "widgets": [
-                                                        {
-                                                            "image": {
-                                                                "imageUrl": "https://i.imgur.com/IYKIW7l.png",
-                                                                "altText": "Athlete"
-                                                            }
-                                                        },
-                                                        {
-                                                            "buttonList": {
-                                                                "buttons": [
-                                                                    {
-                                                                        "text": "Athlete",
-                                                                        "onClick": {
-                                                                            "openLink": {
-                                                                                "url": "https://developers.google.com/chat/ui/widgets/button-list"
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                ]
-                                                            }
-                                                        },
-                                                        {
-                                                            "textParagraph": {
-                                                                "text": "📚  🟩🟩🟩🟩🟩\n🚑  🟩🟩🟩🟩🟩\n😀  🟩🟩🟩⬛⬛️\n💰 $28k-$80k"
-                                                            }
-                                                        }
-                                                    ]
-                                                },
-                                                {
-                                                    "horizontalSizeStyle": "FILL_MINIMUM_SPACE",
-                                                    "horizontalAlignment": "CENTER",
-                                                    "verticalAlignment": "CENTER",
-                                                    "widgets": [
-                                                        {
-                                                            "image": {
-                                                                "imageUrl": "https://i.imgur.com/pfc1VZC.png",
-                                                                "altText": "Doctor"
-                                                            }
-                                                        },
-                                                        {
-                                                            "buttonList": {
-                                                                "buttons": [
-                                                                    {
-                                                                        "text": "Doctor",
-                                                                        "onClick": {
-                                                                            "openLink": {
-                                                                                "url": "https://developers.google.com/chat/ui/widgets/button-list"
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                ]
-                                                            }
-                                                        },
-                                                        {
-                                                            "textParagraph": {
-                                                                "text": "📚  🟩🟩🟩🟩🟩\n🚑  🟩🟩🟩🟩🟩\n😀  🟩🟩🟩⬛⬛️\n💰 $28k-$80k"
-                                                            }
-                                                        }
-                                                    ]
-                                                }
-                                            ]
+                                            "columnItems": columnItems // Even number of column items
                                         }
                                     }
                                 ]
@@ -310,7 +249,6 @@ function selectOccupationDialog(event) {
                 }
             }
         }
-    }
-    return msg;
-    */
+    };
 }
+

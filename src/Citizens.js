@@ -245,7 +245,7 @@ function sendCitizenStatsMessage(name, house, plot, occupation, occupationLevel,
                                         "icon": {
                                             "iconUrl": "https://cdn-icons-png.flaticon.com/512/11562/11562337.png"
                                         },
-                                        "topLabel": "House",
+                                        "topLabel": "Village",
                                         "text": `${house}`
                                     }
                                 },
@@ -273,7 +273,7 @@ function sendCitizenStatsMessage(name, house, plot, occupation, occupationLevel,
                                         "icon": {
                                             "iconUrl": "https://cdn-icons-png.flaticon.com/128/566/566445.png"
                                         },
-                                        "topLabel": "Gold",
+                                        "topLabel": "Salary",
                                         "text": `${gold}`
                                     }
                                 }

@@ -74,7 +74,7 @@ async function handleQuizSubmission(event) {
 
 async function handleOccupationSelection(event) {
     try {
-        const selectedOccupation = event.common.formInputs.occupations[""].stringInputs.value[0];
+        const selectedOccupation = event.common.parameters.occupation;
         const house = await getUserHouse(event.user.email);
         const signUpResponse = await signUp(event.user.displayName, event.user.email, event.user.name, event.space.name, house, selectedOccupation);
         return handleSignUpResponse(signUpResponse, event);

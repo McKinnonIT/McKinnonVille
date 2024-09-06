@@ -1,3 +1,10 @@
+const VILLAGE_COLOURS = {
+    "gilmore": [120, 0, 0], // Red
+    "chisholm": [0, 0, 120], // Blue
+    "flynn": [120, 120, 0], // Yellow
+    "monash": [0, 120, 0] // Green (duplicate, just for consistency)
+};
+
 /**
  * Creates a dialog for Google Chat that provides information on how to play McKinnonVille and an option to sign up.
  * This dialog includes introductory text and a link to a map, as well as a sign-up button that triggers another dialog.
@@ -5,43 +12,63 @@
  * @returns {object} An object formatted to display a dialog in Google Chat, featuring informational content
  *                   and a button for further interaction.
  */
-function signUpDialog() {
+function signUpDialog(house) {
+    const [red, green, blue] = VILLAGE_COLOURS[house.toLowerCase()] || [0, 0, 0]; // Fallback to black if house is not found
+
     return {
         "action_response": {
             "type": "DIALOG",
             "dialog_action": {
                 "dialog": {
-                    "body": {
-                        "header": {
-                            "title": "McKinnonVille",
-                            "subtitle": "How to play",
-                            "imageUrl": "https://raw.githubusercontent.com/McKinnonIT/McKinnonVille/main/assets/img/Double%20Storey.png",
-                            "imageType": "CIRCLE"
-                        },
+                    "body":
+                    {
                         "sections": [
                             {
-                                "header": "",
                                 "collapsible": false,
-                                "uncollapsibleWidgetsCount": 1,
                                 "widgets": [
                                     {
-                                        "textParagraph": {
-                                            "text": "<a href='https://docs.google.com/spreadsheets/d/1dB8uc2jHt7j_lrytB_GHBB3LaW_WfD-7ldxIHfd7-Z4/edit#gid=73366240'>Click here for map</a><br /><br />Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut sit amet dolor pretium turpis eleifend aliquet. Sed at metus blandit, cursus nisi sit amet, pellentesque nunc. Etiam quis suscipit lectus. Pellentesque vel orci posuere, feugiat ex et, ullamcorper eros. Maecenas magna sem, ultricies eget mauris vel, aliquet blandit neque. Nunc ante nibh, semper et blandit eget, volutpat et quam. Nunc eu maximus dolor, vel interdum tortor. Donec bibendum nibh nec est tristique semper. Nunc facilisis libero vitae vestibulum interdum."
+                                        "image": {
+                                            "imageUrl": "https://raw.githubusercontent.com/McKinnonIT/McKinnonVille/main/assets/img/logopineapple0.png"
                                         }
                                     },
                                     {
-                                        "buttonList": {
-                                            "buttons": [
+                                        "textParagraph": {
+                                            "text": "McKinnonVille is a game where YOU get to decide the fate of your village! Join forces with your fellow house members (based on your school house group Gilmore, Monash, Flynn, Chisholm) to become the most prosperous village in McKinnonVille."
+                                        }
+                                    },
+                                    {
+                                        "textParagraph": {
+                                            "text": "Learn more about how to play on our site: mckinnon.sc/mckinnonville"
+                                        }
+                                    },
+                                    {
+                                        "columns": {
+                                            "columnItems": [
                                                 {
-                                                    "text": "Sign up",
-                                                    "icon": {
-                                                        "iconUrl": "https://cdn-icons-png.flaticon.com/512/5599/5599530.png",
-                                                    },
-                                                    "onClick": {
-                                                        "action": {
-                                                            "function": "handleSendOccupationDialog",
+                                                    "horizontalSizeStyle": "FILL_AVAILABLE_SPACE",
+                                                    "horizontalAlignment": "CENTER",
+                                                    "verticalAlignment": "CENTER",
+                                                    "widgets": [
+                                                        {
+                                                            "buttonList": {
+                                                                "buttons": [
+                                                                    {
+                                                                        "text": `Join ${house} Village`,
+                                                                        "color": {
+                                                                            "red": red,
+                                                                            "green": green,
+                                                                            "blue": blue
+                                                                        },
+                                                                        "onClick": {
+                                                                            "action": {
+                                                                                "function": "handleOccupationSelection",
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            }
                                                         }
-                                                    }
+                                                    ]
                                                 }
                                             ]
                                         }
@@ -53,7 +80,7 @@ function signUpDialog() {
                 }
             }
         }
-    };
+    }
 }
 
 
