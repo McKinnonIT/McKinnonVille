@@ -1,4 +1,5 @@
 .eslintrc.js
+.DS_store
 
 # Apps Script
 src/.clasp.json
@@ -134,3 +135,5 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+assets/.DS_Store
+assets/img/.DS_Store

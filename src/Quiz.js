@@ -298,7 +298,7 @@ function getQuizAttempts(email, week) {
         return 0;
     }
 
-    const attempts = parseInt(citizenRow[citizenRow.length - 1], 10);
+    const attempts = citizenRow.pop()
     return isNaN(attempts) ? 0 : attempts;
 }
 

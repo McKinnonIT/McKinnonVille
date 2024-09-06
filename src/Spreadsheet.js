@@ -15,59 +15,50 @@
  */
 function addNewCitizenRow(name, email, plot, userId, spaceId, house, currentGold, currentOccupationLevel, currentOccupation) {
     const sheetName = 'Citizens';
-    // Adjust the range to include all columns from A to W
-    const range = `${sheetName}!A:W`;
+    const totalColumns = 32;  // Column AF is the 32nd column (A=1, B=2, ..., AF=32)
+    const range = `${sheetName}!A:AF`;
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${range}:append?valueInputOption=USER_ENTERED`;
     const headers = {
         'Authorization': 'Bearer ' + getServiceAccountToken(),
         'Content-Type': 'application/json',
     };
 
-    // Define the occupation levels range constant
-    const OCCUPATION_LEVELS_RANGE = "K2:W2";
+    const annualSalaryFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:P"), IF(INDIRECT("H" & ROW())=1, 10, IF(INDIRECT("H" & ROW())=2, 11, IF(INDIRECT("H" & ROW())=3, 12, IF(INDIRECT("H" & ROW())=4, 13, IF(INDIRECT("H" & ROW())=5, 14, IF(INDIRECT("H" & ROW())=6, 15, NA())))))), FALSE)`;
+    const villageTaxRateFormula = `=VLOOKUP(INDIRECT("F" & ROW()), INDIRECT("Villages!A:O"), 15, FALSE)`;
+    const salaryPostTaxFormula = `=INDIRECT("I" & ROW()) - (INDIRECT("I" & ROW()) * INDIRECT("J" & ROW()))`;
+    const educationContributionFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:G"), 4, FALSE) * INDIRECT("H" & ROW())`;
+    const healthContributionFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:G"), 5, FALSE) * INDIRECT("H" & ROW())`;
+    const happinessContributionFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:G"), 6, FALSE) * INDIRECT("H" & ROW())`;
 
-    // The formula for currentOccupationLevel
-    const annualSalaryFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:P"), IF(INDIRECT("H" & ROW())=1, 10, IF(INDIRECT("H" & ROW())=2, 11, IF(INDIRECT("H" & ROW())=3, 12, IF(INDIRECT("H" & ROW())=4, 13, IF(INDIRECT("H" & ROW())=5, 14, IF(INDIRECT("H" & ROW())=6, 15, NA())))))), FALSE)`
-    const villageTaxRateFormula = `=VLOOKUP(INDIRECT("F" & ROW()), INDIRECT("Villages!A:O"), 15, FALSE)`
-    const salaryPostTaxFormula = `=INDIRECT("I" & ROW()) - (INDIRECT("I" & ROW()) * INDIRECT("J" & ROW()))`
-    const educationContributionFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:G"), 4, FALSE) * INDIRECT("H" & ROW())`
-    const healthContributionFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:G"), 5, FALSE) * INDIRECT("H" & ROW())`
-    const happinessContributionFormula = `=VLOOKUP(INDIRECT("G" & ROW()), INDIRECT("Occupations!B:G"), 6, FALSE) * INDIRECT("H" & ROW())`
+    // Initial values to be added to the row
+    const initialValues = [
+        name,                   // Name
+        email,                  // Email
+        plot,                   // Plot
+        userId,                 // User ID
+        spaceId,                // Space ID
+        house,                  // House / Village
+        currentOccupation,      // Occupation
+        1,                      // Occupation Level
+        annualSalaryFormula,    // Annual Salary (Gold pretax)
+        villageTaxRateFormula,  // Village Tax Rate
+        salaryPostTaxFormula,   // Salary (Post Tax)
+        educationContributionFormula, // Education Contribution
+        healthContributionFormula,    // Health Contribution
+        happinessContributionFormula   // Happiness Contribution
+    ];
 
-    // Combine the provided values with the additional ones for columns K to W,
+    // Calculate how many "0" values to add
+    const remainingCellsCount = totalColumns - initialValues.length;
+
+    // Fill the remaining cells with "0"
+    const remainingValues = new Array(remainingCellsCount).fill("0");
+
+    // Combine initial values with the remaining "0" values
+    const finalRow = [...initialValues, ...remainingValues];
+
     const payload = JSON.stringify({
-        values: [
-            [
-                // Name
-                name,
-                // Email
-                email,
-                // Plot
-                plot,
-                // User ID
-                userId,
-                // Space ID
-                spaceId,
-                // House / Village
-                house,
-                // Occupation
-                currentOccupation,
-                // Occupation Level
-                1,
-                // Annual Salary (Gold pretax)
-                annualSalaryFormula,
-                // Village Tax Rate
-                villageTaxRateFormula,
-                // Salary (Post Tax)
-                salaryPostTaxFormula,
-                // Education Contribution
-                educationContributionFormula,
-                // Health Contribution
-                healthContributionFormula,
-                // Happiness Contribtion
-                happinessContributionFormula
-            ]
-        ],
+        values: [finalRow],
     });
 
     const options = {

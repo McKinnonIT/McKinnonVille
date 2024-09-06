@@ -32,10 +32,22 @@ async function handleSubmitAnswer(event) {
 }
 
 async function handleSendOccupationDialog(event) {
-    return selectOccupationDialog();
+    return selectOccupationDialog(event);
 }
 
 async function handleQuizSubmission(event) {
+    const week = getWeek();
+    let remainingAttempts = Math.max(0, QUIZ_MAX_ATTEMPTS - citizen.getQuizAttempts(week));
+    if (remainingAttempts === 0) {
+        return {
+            "action_response": {
+                "type": "NEW_MESSAGE",
+            },
+            "text": `You have already attempted the Week ${week} quiz. Please try again next week.`
+        };
+    }
+
+
     const quizResults = evaluateSubmittedAnswers(event.common.formInputs);
     const totalQuestions = Object.keys(event.common.formInputs).length;
     const correctAnswers = quizResults.correctAnswers.count;
@@ -43,7 +55,6 @@ async function handleQuizSubmission(event) {
     const citizen = new Citizen(event.user.email);
     citizen.incrementQuizAttempts();
 
-    let remainingAttempts = Math.max(0, QUIZ_MAX_ATTEMPTS - citizen.getQuizAttempts());
 
     let message;
     if (correctAnswers === totalQuestions) {
@@ -70,7 +81,7 @@ async function handleOccupationSelection(event) {
     } catch (error) {
         let userMessage;
         if (error instanceof HouseNotFound) {
-            userMessage = `🥺 Sorry ${event.user.displayName.match(/^\S+/)[0]}, it looks like I can't find which house you're in.Send an email to help @mckinnonsc.vic.edu.au and we'll get this sorted for yo.`
+            userMessage = `🥺 Sorry ${event.user.displayName.match(/^\S+/)[0]}, it looks like I can't find which house you're in. Send an email to help @mckinnonsc.vic.edu.au and we'll get this sorted for you.`
         }
         return logErrorAndRespond(error, userMessage || "Error in handleOccupationSelection");
     }

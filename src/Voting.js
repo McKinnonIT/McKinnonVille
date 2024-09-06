@@ -54,16 +54,24 @@ function getVotingOptions(week) {
  * @returns {Array} An array of widgets formatted for Google Chat dialogs.
  */
 function generateVotingWidgets(options) {
-    return [{
+    const widget = [{
         selectionInput: {
             name: "voteOption",
             type: "RADIO_BUTTON",
-            items: options.map(option => ({
-                text: `${option.name}
-                ${option.description}`, value: String(option.id)
-            }))
+            items: [
+                ...options.map(option => ({
+                    text: `${option.name}\n${option.description}`,
+                    value: String(option.id)
+                })),
+                {
+                    text: "None of the above",
+                    value: "4"
+                }
+            ]
         }
     }];
+
+    return widget
 }
 
 /**
@@ -76,8 +84,7 @@ function sendVotingDialog(event) {
     const email = event.user.email; // Assuming the event object contains the user's email
     const existingVote = getCitizenVote(email, week);
 
-    Logger.log(`Week: ${week}, Email: ${email}, Existing Vote: ${existingVote}`);
-    if (existingVote !== null) {
+    if (existingVote) {
         return {
             "action_response": {
                 "type": "DIALOG",
@@ -154,7 +161,7 @@ function handleSendVotingDialog(event) {
 }
 
 function handleSendQuizDialog(event) {
-    return sendQuizDialog(event);
+    return slashQuiz(event);
 }
 
 /**
@@ -162,16 +169,48 @@ function handleSendQuizDialog(event) {
  * @param {Object} event - Event containing the vote selection from the user.
  */
 function handleVoteSubmission(event) {
+    const existingVote = getCitizenVote(event.user.email, week);
+
+    if (existingVote) {
+        return {
+            "action_response": {
+                "type": "DIALOG",
+                "dialog_action": {
+                    "dialog": {
+                        "body": {
+                            "sections": [
+                                {
+                                    "header": "",
+                                    "collapsible": false,
+                                    "uncollapsibleWidgetsCount": 1,
+                                    "widgets": [
+                                        {
+                                            "textParagraph": {
+                                                "text": `You have already submitted a vote for this ordinance.`
+                                            }
+                                        },
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+    }
+
     const selectedOptionId = event.common.formInputs.voteOption[""].stringInputs.value[0];
     const week = getWeek(); // Function to determine the current week, which needs to be implemented
 
     updateVote(event.user.email, week, selectedOptionId);
 
+
+    const message = "Your vote has been successfully recorded, Check out the McKinnonVille Map to see how your house is progressing! https://mckinnon.sc/mckinnonville"
     return {
         "action_response": {
             "type": "NEW_MESSAGE",
         },
-        "text": "Your vote has been successfully recorded."
+        "text": message
     };
 }
 
@@ -250,5 +289,5 @@ function getCitizenVote(email, week) {
         return null;
     }
 
-    return values[0][0];
+    return parseInt(values[0][0]);
 }
