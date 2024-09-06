@@ -1,4 +1,5 @@
 .eslintrc.js
+.DS_store
 
 # Apps Script
 src/.clasp.json
