@@ -2,33 +2,34 @@
 const OCCUPATIONS_SHEET_NAME = 'Occupations';
 const OCCUPATIONS_RANGE = 'A2:P';
 
+
 class Occupation {
     constructor(occupationName, stats) {
         this.name = occupationName;
         this.setStats(stats);
     }
 
-    setStats(stats) {
-        this.icon = stats[0];            // Column A
-        this.name = stats[1];            // Column B
-        this.description = stats[2];     // Column C
-        this.subjects = stats[3];        // Column D
-        this.education = parseFloat(stats[4] || 0); // Column E
-        this.health = parseFloat(stats[5] || 0);    // Column F
-        this.happiness = parseFloat(stats[6] || 0); // Column G
+    setStats([icon, name, description, subjects, education = 0, health = 0, happiness = 0, imageUrl, lowerSalary = 0, upperSalary = 0, ...salarySteps]) {
+        this.icon = icon;
+        this.name = name;
+        this.description = description;
+        this.subjects = subjects;
+        this.education = parseFloat(education);
+        this.health = parseFloat(health);
+        this.happiness = parseFloat(happiness);
+        this.imageUrl = imageUrl;
         this.salary = {
-            lower: parseFloat(stats[8] || 0), // Column I
-            upper: parseFloat(stats[9] || 0), // Column J
-            steps: stats.slice(10) // Columns K onwards for salary steps
+            lower: parseFloat(lowerSalary),
+            upper: parseFloat(upperSalary),
+            steps: salarySteps
         };
     }
 
-    // Normalize occupation names to lowercase to use them as object keys
     static normalizeName(name) {
         return name.toLowerCase().replace(/\s+/g, '_'); // Replace spaces with underscores
     }
 
-    static get(occupationNames = null) {
+    static getOccupationData() {
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID_DATA}/values/${encodeURIComponent(OCCUPATIONS_SHEET_NAME + '!' + OCCUPATIONS_RANGE)}`;
         const headers = {
             'Authorization': 'Bearer ' + getServiceAccountToken(),
@@ -36,53 +37,41 @@ class Occupation {
         };
         const options = { method: 'get', headers: headers, muteHttpExceptions: true };
         const response = UrlFetchApp.fetch(url, options);
-        const values = JSON.parse(response.getContentText()).values || [];
+        return JSON.parse(response.getContentText()).values || [];
+    }
 
-        // If occupationNames is null, return all occupations in an object format
-        if (occupationNames === null) {
-            const occupationsObj = {};
-            values.forEach(row => {
-                const occupationName = row[1]; // Column B (Occupation Name)
-                const normalizedName = Occupation.normalizeName(occupationName);
-                occupationsObj[normalizedName] = new Occupation(occupationName, row);
-            });
-            return occupationsObj; // Return as an object with keys for each occupation
+    static get(occupationNames = []) {
+        if (!Array.isArray(occupationNames)) {
+            throw new Error('Occupation names must be an array');
         }
 
-        // Normalize occupationNames to an array, even if it's a single string
-        if (typeof occupationNames === 'string') {
-            occupationNames = [occupationNames];
-        }
-
-        // Create an object to store stats by occupation name
-        const occupationsStats = {};
-        values.forEach(row => {
+        const values = this.getOccupationData();
+        const occupations = values.reduce((acc, row) => {
             const occupationName = row[1]; // Column B (Occupation Name)
-            if (occupationNames.includes(occupationName)) {
-                occupationsStats[occupationName] = row; // Store the whole row
-            }
-        });
+            const normalizedName = Occupation.normalizeName(occupationName);
+            acc[normalizedName] = new Occupation(occupationName, row);
+            return acc;
+        }, {});
 
-        // If only one occupation name was provided, return a single Occupation instance
-        if (occupationNames.length === 1) {
-            const name = occupationNames[0];
-            if (occupationsStats[name]) {
-                return new Occupation(name, occupationsStats[name]);
-            } else {
-                throw new Error(`Occupation '${name}' not found`);
-            }
+        // Always return as an object
+        if (occupationNames.length === 0) {
+            return occupations; // Return all occupations as an object
         }
 
-        // For multiple occupation names, return an array of Occupation instances
-        return occupationNames.map(name => {
-            if (occupationsStats[name]) {
-                return new Occupation(name, occupationsStats[name]);
+        const result = {};
+        occupationNames.forEach(name => {
+            const normalized = Occupation.normalizeName(name);
+            if (occupations[normalized]) {
+                result[normalized] = occupations[normalized];
             } else {
                 throw new Error(`Occupation '${name}' not found`);
             }
         });
+
+        return result;
     }
 }
+
 
 
 /**
@@ -113,7 +102,7 @@ function selectOccupationDialog(event) {
         return logErrorAndRespond(error, userMessage || "Error in handleOccupationSelection");
     }
 
-    const occupations = getOccupations();
+    const occupations = Occupation.get();
 
     if (!occupations) {
         return {
@@ -123,7 +112,9 @@ function selectOccupationDialog(event) {
 
     const village = Village.get(house);
     const villageBalance = generateVillageBalance(village.education, village.health, village.happiness);
-
+    const msg = buildOccupationDialog(occupations, house, villageBalance);
+    return msg;
+    /*
     const msg = {
         "action_response": {
             "type": "DIALOG",
@@ -321,6 +312,7 @@ function selectOccupationDialog(event) {
         }
     }
     return msg;
+    */
 }
 
 /**
